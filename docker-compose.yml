@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # 1. Database PostgreSQL (Data User & Relasi)
+  postgres:
+    image: postgres:15-alpine
+    container_name: sistem_pelaporan_prestasi_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db_pelaporan_prestasi
+    volumes:
+      - pg_data_uas:/var/lib/postgresql/data
+
+  # 2. Database MongoDB (Data Detail Prestasi)
+  mongo:
+    image: mongo:6.0
+    container_name: sistem_pelaporan_prestasi_mongo  # <--- SAYA UBAH DISINI (Biar beda)
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+    volumes:
+      - mongo_data_uas:/data/db
+
+  # 3. Mongo Express (Web buat liat data Mongo)
+  mongo-express:
+    image: mongo-express
+    container_name: sistem_pelaporan_prestasi_express # <--- SAYA UBAH DISINI (Biar beda)
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password
+      ME_CONFIG_MONGODB_URL: mongodb://root:password@mongo:27017/
+
+volumes:
+  pg_data_uas:
+  mongo_data_uas:

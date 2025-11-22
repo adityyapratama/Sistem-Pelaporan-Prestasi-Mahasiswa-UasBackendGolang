@@ -1,0 +1,135 @@
+# Framework Web
+go get github.com/gofiber/fiber/v2
+
+# Driver Database
+go get github.com/lib/pq             # Driver PostgreSQL
+go get go.mongodb.org/mongo-driver/mongo # Driver MongoDB (BARU)
+
+# Utilities
+go get github.com/joho/godotenv      # Load .env
+go get github.com/golang-jwt/jwt/v5  # JWT Token
+go get golang.org/x/crypto/bcrypt    # Hash Password
+go get github.com/google/uuid        # Buat generate ID unik (UUID)
+
+
+database postgress : 
+
+users {
+id: UUID PRIMARY KEY
+username: VARCHAR(50) UNIQUE NOT NULL
+email: VARCHAR(100) UNIQUE NOT NULL
+password_hash: VARCHAR(255) NOT NULL
+full_name: VARCHAR(100) NOT NULL
+role_id: UUID FOREIGN KEY -> roles.id
+is_active: BOOLEAN DEFAULT true
+created_at: TIMESTAMP DEFAULT NOW()
+updated_at: TIMESTAMP DEFAULT NOW()
+}
+
+roles {
+id: UUID PRIMARY KEY
+name: VARCHAR(50) UNIQUE NOT NULL
+description: TEXT
+created_at: TIMESTAMP DEFAULT NOW()
+}
+
+permissions {
+id: UUID PRIMARY KEY
+name: VARCHAR(100) UNIQUE NOT NULL
+resource: VARCHAR(50) NOT NULL
+action: VARCHAR(50) NOT NULL
+description: TEXT
+}
+
+role_permissions {
+role_id: UUID FOREIGN KEY -> roles.id
+permission_id: UUID FOREIGN KEY -> permissions.id
+PRIMARY KEY (role_id, permission_id)
+}
+
+students {
+id: UUID PRIMARY KEY
+user_id: UUID FOREIGN KEY -> users.id
+student_id: VARCHAR(20) UNIQUE NOT NULL
+program_study: VARCHAR(100)
+academic_year: VARCHAR(10)
+advisor_id: UUID FOREIGN KEY -> lecturers.id
+created_at: TIMESTAMP DEFAULT NOW()
+}
+
+lecturers {
+id: UUID PRIMARY KEY
+user_id: UUID FOREIGN KEY -> users.id
+lecturer_id: VARCHAR(20) UNIQUE NOT NULL
+department: VARCHAR(100)
+created_at: TIMESTAMP DEFAULT NOW()
+}
+
+
+achievement_references {
+id: UUID PRIMARY KEY
+student_id: UUID FOREIGN KEY -> students.id
+mongo_achievement_id: VARCHAR(24) NOT NULL
+status: ENUM('draft', 'submitted', 'verified', 'rejected')
+submitted_at: TIMESTAMP
+verified_at: TIMESTAMP
+verified_by: UUID FOREIGN KEY -> users.id
+rejection_note: TEXT
+created_at: TIMESTAMP DEFAULT NOW()
+updated_at: TIMESTAMP DEFAULT NOW()
+}
+
+database mongoDB:
+{
+_id: ObjectId,
+studentId: UUID (reference to PostgreSQL),
+achievementType: String, // 'academic', 'competition', 'organization',
+'publication', 'certification', 'other'
+title: String,
+description: String,
+// Field dinamis berdasarkan tipe prestasi
+details: {
+// Untuk competition
+competitionName?: String,
+competitionLevel?: String, // 'international', 'national', 'regional',
+'local'
+rank?: Number,
+medalType?: String,
+// Untuk publication
+publicationType?: String, // 'journal', 'conference', 'book'
+publicationTitle?: String,
+authors?: [String],
+publisher?: String,
+issn?: String,
+// Untuk organization
+organizationName?: String,
+position?: String,
+period?: {
+start: Date,
+end: Date
+},
+// Untuk certification
+certificationName?: String,
+issuedBy?: String,
+certificationNumber?: String,
+validUntil?: Date,
+// Field umum yang bisa ada
+eventDate?: Date,
+location?: String,
+organizer?: String,
+score?: Number,
+
+
+customFields?: Object // untuk field tambahan yang tidak terdefinisi
+},
+attachments: [{
+fileName: String,
+fileUrl: String,
+fileType: String,
+uploadedAt: Date
+}],
+tags: [String],
+points: Number, // poin prestasi untuk keperluan scoring
+createdAt: Date,
+updatedAt: Date
+}
