@@ -22,3 +22,5 @@ type RoleRepository interface{
 	GetByID (ctx context.Context, id uuid.UUID) (*models.Role, error)
 }
 
+
+
