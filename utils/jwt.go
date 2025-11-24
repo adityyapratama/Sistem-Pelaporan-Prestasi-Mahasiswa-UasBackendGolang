@@ -65,3 +65,16 @@ func ValidateToken(tokenString string) (*JWTClaims, error) {
 
 	return nil, jwt.ErrSignatureInvalid
 }
+
+func GenerateRefreshToken(userID uuid.UUID) (string, error) {
+	claims := JWTClaims{
+		UserID:   userID,
+		RoleName: "", 
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)), 
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(getSecret())
+}
