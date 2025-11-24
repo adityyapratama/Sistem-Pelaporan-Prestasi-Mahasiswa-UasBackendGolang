@@ -1,12 +1,12 @@
 package service
 
 import (
-    "uas-pelaporan-prestasi-mahasiswa/apps/models"
-    "uas-pelaporan-prestasi-mahasiswa/apps/repository"
-    "uas-pelaporan-prestasi-mahasiswa/utils"
+	"uas-pelaporan-prestasi-mahasiswa/apps/models"
+	"uas-pelaporan-prestasi-mahasiswa/apps/repository"
+	"uas-pelaporan-prestasi-mahasiswa/utils"
 
-    "github.com/gofiber/fiber/v2"
-    "github.com/google/uuid"
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type AuthService struct{
@@ -106,3 +106,68 @@ func(s *AuthService) Login(c *fiber.Ctx) error {
         },
     })
 }
+
+func (s *AuthService) GetProfile(c *fiber.Ctx) error {
+    userIDStr := c.Locals("user_id").(string)
+    userID, err := uuid.Parse(userIDStr)
+    if err !=nil{
+        return c.Status(400).JSON(fiber.Map{
+            "error" :"user id tidak valid",
+        })
+    }
+
+    ctx :=c.Context()
+    user, err := s.userRepo.GetByID(ctx, userID)
+    if err!= nil{
+        return c.Status(404).JSON(fiber.Map{
+            "error" :"user tidak di temukan",
+        })
+    }
+
+    return c.JSON(fiber.Map{
+        "messege" : "Berhasil ambil data profile user",
+        "data" : user,
+    })
+
+}
+
+
+func (s *AuthService) RefreshToken(c *fiber.Ctx) error {
+    var req models.RefreshTokenRequest
+
+    if err := c.BodyParser(&req); err != nil {
+        return c.Status(400).JSON(fiber.Map{
+            "error" : "request body tidak valid" ,
+        })
+    }
+
+    claims, err := utils.ValidateToken(req.RefreshToken)
+    if err != nil{
+                return c.Status(400).JSON(fiber.Map{
+            "error" : "refresh token tidak valid atau expired" ,
+        })
+    }
+
+    ctx := c.Context()
+    user, err := s.userRepo.GetByID(ctx, claims.UserID)
+
+    if err != nil || user == nil{
+        return c.Status(401).JSON(fiber.Map{"error": "User tidak ditemukan"})
+    }
+
+    roleName := "unknow"
+    if user.Role != nil{
+        roleName = user.Role.Name
+    }
+
+    newAccessToken, err := utils.GenerateAccessToken(user.ID, roleName)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Gagal generate token baru"})
+	}
+
+    return c.JSON(fiber.Map{
+		"message":      "Token berhasil diperbarui",
+		"access_token": newAccessToken,
+	})
+}
+
