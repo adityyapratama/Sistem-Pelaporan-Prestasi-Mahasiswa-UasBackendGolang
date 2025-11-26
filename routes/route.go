@@ -11,12 +11,20 @@ import (
 
 
 func SetupRoutes(app *fiber.App,
-authService *service.AuthService){
+authService *service.AuthService,
+permService *service.PermissionService,
+studentService *service.StudentService,
+){
 	// app.Use(logger.new())
 	app.Use(cors.New())
 
 	api := app.Group("/api/v1")
 	RegisterAuthRoutes(api, authService)
+	PermissionRoutes(api, permService)
+	StudentRoutes(api,studentService)
+
+
+
 
 
 	

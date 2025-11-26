@@ -7,10 +7,16 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func NewApp(authService *service.AuthService) *fiber.App{
+func NewApp(
+	authService *service.AuthService,
+	permService *service.PermissionService,
+	studentService *service.StudentService,
+	) *fiber.App{
 	app := fiber.New()
 
-	routes.SetupRoutes(app,authService)
+	routes.SetupRoutes(app,authService,permService,studentService)
+	
+	
 
 	return app
 }
