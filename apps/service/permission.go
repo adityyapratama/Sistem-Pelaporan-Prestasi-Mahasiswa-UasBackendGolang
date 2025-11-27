@@ -5,6 +5,7 @@ import (
 	"uas-pelaporan-prestasi-mahasiswa/apps/repository"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type PermissionService struct {
@@ -47,5 +48,30 @@ func (s *PermissionService)GetAll(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message": "List Permission",
 		"data":    permissions,
+	})
+}
+
+
+func (s *PermissionService)AssignToRole(c *fiber.Ctx) error {
+	var req models.AssignPermissionRequest
+	
+	if err := c.BodyParser(&req) ; err !=nil{
+		return c.Status(400).JSON(fiber.Map{"error" :"request body gk valid"})
+	}
+
+	roleID,err1 :=uuid.Parse(req.RoleID)
+	permID, err2 := uuid.Parse(req.PermissionID)
+
+	if err1 != nil|| err2 != nil{
+		return c.Status(400).JSON(fiber.Map{"error" :"Format ID salah woi"})
+	}
+
+	ctx := c.Context()
+	if err := s.permissionRepo.AssignToRole(ctx, roleID, permID) ; err != nil{
+		return c.Status(500).JSON(fiber.Map{"error": "Gagal assign permission"})
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"message": "Permission berhasil ditambahkan ke Role",
 	})
 }

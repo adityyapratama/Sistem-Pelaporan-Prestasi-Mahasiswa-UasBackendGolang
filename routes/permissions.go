@@ -16,6 +16,7 @@ func PermissionRoutes(router fiber.Router, permService *service.PermissionServic
 
 	permission.Post("/", permService.Create)
 	permission.Get("/", permService.GetAll)
+	permission.Post("/assign", permService.AssignToRole)
 	
 
 	

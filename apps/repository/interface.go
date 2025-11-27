@@ -28,7 +28,6 @@ type PermissionRepository interface {
 	Create(ctx context.Context, Permission *models.Permission) error
 	GetByName(ctx context.Context , name string) (*models.Permission, error)
 	GetAll(ctx context.Context) ([]models.Permission, error)
-
 	AssignToRole(ctx context.Context, roleID uuid.UUID, permissionID uuid.UUID) error
 	GetByRoleID(ctx context.Context, roleID uuid.UUID) ([]models.Permission, error)
 }
@@ -40,7 +39,6 @@ type StudentsRepository interface {
     GetByID(ctx context.Context, id uuid.UUID) (*models.Students, error)
     GetAll(ctx context.Context) ([]models.Students, error)
     Update(ctx context.Context, student *models.Students) error
-
 
 }
 
