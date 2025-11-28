@@ -14,6 +14,7 @@ func SetupRoutes(app *fiber.App,
 authService *service.AuthService,
 permService *service.PermissionService,
 studentService *service.StudentService,
+lectureService *service.LectureService,
 ){
 	// app.Use(logger.new())
 	app.Use(cors.New())
@@ -22,6 +23,7 @@ studentService *service.StudentService,
 	RegisterAuthRoutes(api, authService)
 	PermissionRoutes(api, permService)
 	StudentRoutes(api,studentService)
+	LectureRoutes(api,lectureService)
 
 
 

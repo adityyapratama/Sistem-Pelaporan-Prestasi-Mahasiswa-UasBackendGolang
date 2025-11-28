@@ -42,3 +42,13 @@ type StudentsRepository interface {
 
 }
 
+type LectureRepository interface {
+	Create(ctx context.Context, Lecture *models.Lecture)error
+	GetByUserID(ctx context.Context, userID uuid.UUID) (*models.Lecture, error)
+	GetByID(ctx context.Context, id uuid.UUID) (*models.Lecture, error)
+	GetAll(ctx context.Context) ([]models.Lecture, error)
+}
+
+
+
+

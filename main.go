@@ -38,13 +38,15 @@ func main() {
 	userRepo := repository.NewUserRepository(pgDB)
 	permissionRepo :=repository.NewPostgresPermissionRepository(pgDB)
 	studentRepo :=repository.NewStudentRepository(pgDB)
+	lectureRepo :=repository.NewPostgresLectureRepository(pgDB)
 
 	authService := service.NewAuthService(userRepo)
 	permService := service.NewPermissionService(permissionRepo)
 	studentService := service.NewStudentService(studentRepo)
+	lectureService :=service.NewLectureService(lectureRepo)
 
 	
-	app := config.NewApp(authService,permService,studentService)
+	app := config.NewApp(authService,permService,studentService,lectureService)
 
 	
 	port := os.Getenv("APP_PORT")
