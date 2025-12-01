@@ -19,7 +19,7 @@ func NewPostgresLectureRepository (db *sql.DB) *PostgresLectureRepository {
 
 
 func(r *PostgresLectureRepository)Create(ctx context.Context, l *models.Lecture)error{
-	query := `INSERT INTO lecturers(user_id,lecture_id,department)	
+	query := `INSERT INTO lecturers(user_id,lecturer_id,department)	
 				VALUES ($1,$2,$3)
 				RETURNING id,created_at`
 	err := r.db.QueryRowContext(ctx,query,l.UserID,l.LecturerID,l.Department ).Scan(&l.ID, &l.CreatedAt)			

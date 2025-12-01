@@ -73,3 +73,42 @@ func (s *StudentService) GetCurrentStudent(c *fiber.Ctx) error {
 	})
 
 }
+
+func (s *StudentService) SetAdvisor(c *fiber.Ctx)error {
+	studentIDStr := c.Params("id")
+	studentID, err := uuid.Parse(studentIDStr)
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "id mahasiswa tidak valid"})
+	}
+
+	var req models.SetAdvisorRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Request body tidak valid"})
+	}
+
+
+	advisorID, err := uuid.Parse(req.AdvisorID)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "ID Dosen Wali tidak valid"})
+	}
+
+	ctx := c.Context()
+	student, err := s.studentRepo.GetByID(ctx, studentID)
+	if err != nil || student == nil {
+		return c.Status(404).JSON(fiber.Map{"error": "Mahasiswa tidak ditemukan"})
+	}
+
+	student.AdvisorID= &advisorID
+
+	if err := s.studentRepo.Update(ctx, student); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Gagal update dosen wali",
+        "detail": err.Error(),})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Dosen wali berhasil ditetapkan",
+		"data": student,
+	})
+
+}

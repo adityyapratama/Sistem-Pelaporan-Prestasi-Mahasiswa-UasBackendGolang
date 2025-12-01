@@ -86,10 +86,10 @@ func (r *PostStudentRepository) GetAll(ctx context.Context) ([]models.Students, 
 func (r *PostStudentRepository) Update(ctx context.Context, s *models.Students) error {
 	query := `
 		UPDATE students 
-		SET student_id = $1, program_study = $2, academic_year = $3, updated_at = NOW()
-		WHERE id = $4
+		SET student_id = $1, program_study = $2, academic_year = $3, advisor_id =$4 
+		WHERE id = $5
 	`
-	result, err := r.db.ExecContext(ctx, query, s.StudentID, s.ProgramStudy, s.AcademicYear, s.ID)
+	result, err := r.db.ExecContext(ctx, query, s.StudentID, s.ProgramStudy, s.AcademicYear, s.AdvisorID,s.ID)
 	if err != nil {
 		return err
 	}

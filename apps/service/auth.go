@@ -125,7 +125,7 @@ func (s *AuthService) GetProfile(c *fiber.Ctx) error {
     }
 
     return c.JSON(fiber.Map{
-        "messege" : "Berhasil ambil data profile user",
+        "message" : "Berhasil ambil data profile user",
         "data" : user,
     })
 

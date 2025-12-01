@@ -16,6 +16,7 @@ func StudentRoutes(router fiber.Router, studentService *service.StudentService) 
 
 	studens.Post("/", studentService.Create)
 	studens.Get("/current", studentService.GetCurrentStudent)
+	studens.Put("/:id/lecture", studentService.SetAdvisor)
 	
 
 	

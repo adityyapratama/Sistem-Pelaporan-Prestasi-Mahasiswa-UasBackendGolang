@@ -21,6 +21,9 @@ type Students struct {
 type CreateStudensRequest struct{
 	StudentID        string `json:"student_id"`
 	ProgramStudy string `json:"program_study"`
-	AcademicYear string `json:"academic_year"`
-	
+	AcademicYear string `json:"academic_year"`	
+}
+
+type SetAdvisorRequest struct {
+	AdvisorID string `json:"advisor_id"`
 }
