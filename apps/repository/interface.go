@@ -52,3 +52,16 @@ type LectureRepository interface {
 
 
 
+type AchievementRepository interface {
+
+	CreateDetail(ctx context.Context, detail *models.AchievementDetail) error
+	GetDetailByID(ctx context.Context, mongoID string) (*models.AchievementDetail, error)
+
+	
+	CreateReference(ctx context.Context, ref *models.AchievementReference) error
+	GetReferenceByID(ctx context.Context, id uuid.UUID) (*models.AchievementReference, error)
+	UpdateStatus(ctx context.Context, id uuid.UUID, status string) error
+	
+	
+	GetAllByStudentID(ctx context.Context, studentID uuid.UUID) ([]models.AchievementReference, error)
+}
