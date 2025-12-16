@@ -94,16 +94,21 @@ query := `
 	return &user, nil
 }
 
-func( r *PostUserRepository) Create(ctx context.Context, User *models.User) error {
+func (r *PostUserRepository) Create(ctx context.Context, User *models.User) error {
+	User.ID = uuid.New()
 	query := `
-		INSERT INTO users (username, email, password_hash, full_name, role_id)
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id, created_at, updated_at, is_active
+		INSERT INTO users (id, username, email, password_hash, full_name, role_id)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING created_at, updated_at, is_active
 	`
-	// Kita kembalikan ID yang baru dibuat ke struct user
 	err := r.db.QueryRowContext(ctx, query,
-		User.Username, User.Email, User.PasswordHash, User.FullName, User.RoleID,
-	).Scan(&User.ID, &User.CreatedAt, &User.UpdatedAt, &User.IsActive)
+		User.ID,           // $1
+		User.Username,     // $2
+		User.Email,        // $3
+		User.PasswordHash, // $4
+		User.FullName,     // $5
+		User.RoleID,       // $6
+	).Scan(&User.CreatedAt, &User.UpdatedAt, &User.IsActive)
 
 	return err
 }

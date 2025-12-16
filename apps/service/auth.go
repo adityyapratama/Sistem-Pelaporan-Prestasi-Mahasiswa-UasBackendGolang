@@ -11,10 +11,11 @@ import (
 
 type AuthService struct {
 	userRepo repository.UserRepository
+	permissionRepo repository.PermissionRepository
 }
 
-func NewAuthService(userRepo repository.UserRepository) *AuthService {
-	return &AuthService{userRepo: userRepo}
+func NewAuthService(userRepo repository.UserRepository, permissionRepo repository.PermissionRepository) *AuthService {
+	return &AuthService{userRepo: userRepo, permissionRepo: permissionRepo}
 }
 
 func (s *AuthService) Register(c *fiber.Ctx) error {
@@ -81,10 +82,19 @@ func (s *AuthService) Login(c *fiber.Ctx) error {
 		return c.Status(403).JSON(fiber.Map{"error": "akun anda mati"})
 	}
 
-	// Ambil Role Name
+	
 	roleName := "Unknown"
+	var Permission []string
 	if user.Role != nil {
 		roleName = user.Role.Name
+
+		perms, err :=s.permissionRepo.GetByRoleID(ctx,user.Role.ID)
+		if err == nil{
+			for _, p := range perms{
+				Permission = append(Permission, p.Name)
+			}
+
+		}
 	}
 
 	token, err := utils.GenerateToken(user.ID, roleName)
@@ -98,11 +108,17 @@ func (s *AuthService) Login(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"message": "Login berhasil",
+		"status": "success",
 		"data": fiber.Map{
 			"token":        token,
 			"refreshToken": refreshToken,
-			"user":         user,
+			"user": fiber.Map{
+				"id":          user.ID,
+				"username":    user.Username,
+				"fullName":    user.FullName, 
+				"role":        roleName,
+				"permissions": Permission,   
+			},
 		},
 	})
 }
