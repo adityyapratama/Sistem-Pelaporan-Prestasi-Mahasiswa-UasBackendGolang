@@ -75,3 +75,4 @@ func (s *PermissionService)AssignToRole(c *fiber.Ctx) error {
 		"message": "Permission berhasil ditambahkan ke Role",
 	})
 }
+

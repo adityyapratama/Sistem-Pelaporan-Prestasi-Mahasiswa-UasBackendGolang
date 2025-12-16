@@ -102,12 +102,12 @@ func (r *PostUserRepository) Create(ctx context.Context, User *models.User) erro
 		RETURNING created_at, updated_at, is_active
 	`
 	err := r.db.QueryRowContext(ctx, query,
-		User.ID,           // $1
-		User.Username,     // $2
-		User.Email,        // $3
-		User.PasswordHash, // $4
-		User.FullName,     // $5
-		User.RoleID,       // $6
+		User.ID,           
+		User.Username,     
+		User.Email,        		
+		User.PasswordHash, 
+		User.FullName,     
+		User.RoleID,       
 	).Scan(&User.CreatedAt, &User.UpdatedAt, &User.IsActive)
 
 	return err

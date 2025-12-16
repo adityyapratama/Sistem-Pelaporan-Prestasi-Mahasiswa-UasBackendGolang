@@ -13,8 +13,14 @@ func RegisterAuthRoutes(router fiber.Router, authService *service.AuthService) {
 	
 	auth := router.Group("/auth")
 
+	
 	auth.Post("Register",authService.Register)
 	auth.Post("Login",authService.Login)
+	auth.Put("/:id",authService.UpdateUser)
+
+	// update role
+	auth.Put("/:id",authService.UpdateRoleUser)
+
 	auth.Get("profiles",middleware.AuthProtected(),authService.GetProfile)
 	auth.Post("/refresh", authService.RefreshToken)
 

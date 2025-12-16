@@ -40,7 +40,7 @@ func main() {
 	studentRepo :=repository.NewStudentRepository(pgDB)
 	lectureRepo :=repository.NewPostgresLectureRepository(pgDB)
 
-	authService := service.NewAuthService(userRepo)
+	authService := service.NewAuthService(userRepo, permissionRepo)
 	permService := service.NewPermissionService(permissionRepo)
 	studentService := service.NewStudentService(studentRepo)
 	lectureService :=service.NewLectureService(lectureRepo)

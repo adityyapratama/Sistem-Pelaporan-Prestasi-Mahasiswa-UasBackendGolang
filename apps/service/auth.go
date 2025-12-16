@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	
 )
 
 type AuthService struct {
@@ -184,4 +185,86 @@ func (s *AuthService) RefreshToken(c *fiber.Ctx) error {
 		"message":      "Token berhasil diperbarui",
 		"access_token": newAccessToken,
 	})
+}
+
+
+func (s *AuthService) UpdateUser(c *fiber.Ctx) error {
+	id := c.Params("id")
+	userUUID, err := uuid.Parse(id)
+	if err != nil{
+		return c.Status(400).JSON(fiber.Map{"error": "ID tidak valid"})
+	}
+
+	var req models.User
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid body"})
+	}
+
+	req.ID = userUUID
+	ctx := c.Context()
+	if err := s.userRepo.Update(ctx, &req); err != nil{
+		return c.Status(500).JSON(fiber.Map{"error": "Gagal update user"})
+	
+	}
+
+	return  c.JSON(fiber.Map{
+		"message": "User berhasil diupdate",
+		})
+
+}
+
+
+func (s *AuthService) DeleteUser(c *fiber.Ctx) error {
+	id := c.Params("id")
+	userUUID, err := uuid.Parse(id)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "ID tidak valid"})
+	}
+
+	ctx := c.Context()
+	if err := s.userRepo.Delete(ctx, userUUID); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Gagal menghapus user"})
+	}
+
+	return c.JSON(fiber.Map{"message": "User berhasil dihapus"})
+}
+
+
+func (s *AuthService) GetAllUser(c *fiber.Ctx) error {
+	ctx := c.Context()
+	users , err := s.userRepo.GetAll(ctx)
+	if err!= nil{
+		return c.Status(500).JSON(fiber.Map{"error": "Gagal mengambil data user"})
+	}
+	return c.JSON(fiber.Map{
+		"message" : "data user berhasil di hapus",
+		"data": users,
+	})
+}
+
+func (s *AuthService) UpdateRoleUser(c *fiber.Ctx) error {
+	id := c.Params("id")
+	userUUID, err := uuid.Parse(id)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "User ID tidak valid"})
+	}
+
+	var req struct {
+		RoleID string `json:"role_id"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Body tidak valid"})
+	}
+
+	roleUUID, err := uuid.Parse(req.RoleID)
+	if err != nil{
+		return c.Status(400).JSON(fiber.Map{"error": "Role ID tidak valid"})
+	}
+
+	ctx := c.Context()
+	if err := s.userRepo.UpdateRole(ctx, roleUUID,userUUID) ; err != nil{
+		return c.Status(500).JSON(fiber.Map{"error": "Gagal update role"})
+	}
+	return c.JSON(fiber.Map{"message": "Role user berhasil diupdate"})
+	
 }
