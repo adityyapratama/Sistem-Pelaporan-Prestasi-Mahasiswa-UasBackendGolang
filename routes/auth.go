@@ -17,6 +17,7 @@ func RegisterAuthRoutes(router fiber.Router, authService *service.AuthService) {
 	auth.Post("Register",authService.Register)
 	auth.Post("Login",authService.Login)
 	auth.Put("/:id",authService.UpdateUser)
+	auth.Get("/",authService.GetAllUser)
 
 	// update role
 	auth.Put("/:id",authService.UpdateRoleUser)
