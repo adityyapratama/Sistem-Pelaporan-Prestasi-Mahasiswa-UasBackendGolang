@@ -15,6 +15,7 @@ authService *service.AuthService,
 permService *service.PermissionService,
 studentService *service.StudentService,
 lectureService *service.LectureService,
+achievService *service.AchievementService,
 ){
 	// app.Use(logger.new())
 	app.Use(cors.New())
@@ -24,6 +25,7 @@ lectureService *service.LectureService,
 	PermissionRoutes(api, permService)
 	StudentRoutes(api,studentService)
 	LectureRoutes(api,lectureService)
+	AchievementRoutes(api,achievService)
 
 
 

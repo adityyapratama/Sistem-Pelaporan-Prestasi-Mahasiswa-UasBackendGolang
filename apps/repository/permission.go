@@ -45,7 +45,7 @@ func (r *PostgresPermissionRepository) GetAll(ctx context.Context) ([]models.Per
 		permissions = append(permissions, p)
 	}
     
-    // Return data dan nil (error kosong)
+    
 	return permissions, nil 
 }
 
@@ -75,29 +75,28 @@ func ( r *PostgresPermissionRepository)AssignToRole(ctx context.Context, roleID 
 }
 
 func (r *PostgresPermissionRepository) GetByRoleID(ctx context.Context, roleID uuid.UUID) ([]models.Permission, error) {
-	query :=`SELECT p.id, p.name, p.resource, p.action, p.description
-		FROM permissions p
-		JOIN role_permissions rp ON p.id = rp.permission_id
-		WHERE rp.role_id = $1`
+    // Query join antara permissions dan role_permissions
+    query := `
+        SELECT p.id, p.name 
+        FROM permissions p
+        JOIN role_permissions rp ON p.id = rp.permission_id
+        WHERE rp.role_id = $1
+    `
+    
+    rows, err := r.db.QueryContext(ctx, query, roleID)
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
 
-		rows, err := r.db.QueryContext(ctx, query, roleID)
-		if err!= nil{
-			return nil, err
-		}
-
-		defer rows.Close()
-
-		var permissions []models.Permission
-		for rows.Next() {
-			var p models.Permission
-			if err := rows.Scan(&p.ID,&p.Name,&p.Resource,&p.Description) ; err != nil{
-				return nil, err
-			}
-			permissions = append(permissions, p)
-
-		}
-		return  permissions, nil
-
+    var permissions []models.Permission
+    for rows.Next() {
+        var p models.Permission
+        if err := rows.Scan(&p.ID, &p.Name); err != nil {
+            return nil, err
+        }
+        permissions = append(permissions, p)
+    }
+    return permissions, nil
 }
-
 

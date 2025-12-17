@@ -35,18 +35,24 @@ func main() {
 		}
 	}()
 
+	mongoDbInstance := mongoClient.Database("db_prestasi")
+
 	userRepo := repository.NewUserRepository(pgDB)
 	permissionRepo :=repository.NewPostgresPermissionRepository(pgDB)
 	studentRepo :=repository.NewStudentRepository(pgDB)
 	lectureRepo :=repository.NewPostgresLectureRepository(pgDB)
+	achievementRepo := repository.NewAchievementRepo(pgDB,mongoDbInstance)
 
 	authService := service.NewAuthService(userRepo, permissionRepo)
 	permService := service.NewPermissionService(permissionRepo)
 	studentService := service.NewStudentService(studentRepo)
 	lectureService :=service.NewLectureService(lectureRepo)
+	achievementService := service.NewAchievementService(achievementRepo, studentRepo)
+
 
 	
-	app := config.NewApp(authService,permService,studentService,lectureService)
+	app := config.NewApp(authService,permService,studentService,lectureService,achievementService)
+	
 
 	
 	port := os.Getenv("APP_PORT")

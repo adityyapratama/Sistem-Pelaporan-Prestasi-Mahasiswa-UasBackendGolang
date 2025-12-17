@@ -1,6 +1,5 @@
 package repository
 
-
 import (
 	"context"
 	"database/sql"
@@ -19,14 +18,14 @@ type AchievementRepo struct {
 	mongoDB *mongo.Database
 }
 
-func NewHAchievementRepo(pgDB *sql.DB, mongoDB *mongo.Database) *AchievementRepo {
+func NewAchievementRepo(pgDB *sql.DB, mongoDB *mongo.Database) *AchievementRepo {
 	return &AchievementRepo{
 		pgDB:    pgDB,
 		mongoDB: mongoDB,
 	}
 }
 
-// to mongo database
+
 func (r *AchievementRepo) CreateDetail(ctx context.Context, detail *models.AchievementDetail) error {
 	collection := r.mongoDB.Collection("achievements")
 	detail.ID = primitive.NewObjectID()
@@ -54,24 +53,36 @@ func (r *AchievementRepo) GetDetailByID(ctx context.Context, mongoID string) (*m
 }
 
 
-// to postgress
+
+
 func (r *AchievementRepo) CreateReference(ctx context.Context, ref *models.AchievementReference) error {
 	query := `
-		INSERT INTO achievement_references (student_id, mongo_achievement_id, status)
-		VALUES ($1, $2, $3)
-		RETURNING id, created_at, updated_at
-	`
+        INSERT INTO achievement_references (
+            student_id, mongo_achievement_id, status, submitted_at, created_at
+        )
+        VALUES ($1, $2, $3, $4, NOW())
+        RETURNING id, created_at, updated_at
+    `
 
 	if ref.Status == "" {
-		ref.Status = "draft"
+		ref.Status = "draft" 
 	}
-	err := r.pgDB.QueryRowContext(ctx, query, ref.StudentID, ref.MongoAchievementID, ref.Status).Scan(&ref.ID, &ref.CreatedAt, &ref.UpdatedAt)
+
+	err := r.pgDB.QueryRowContext(ctx, query, 
+		ref.StudentID, 
+		ref.MongoAchievementID, 
+		ref.Status, 
+		ref.SubmittedAt, 
+	).Scan(&ref.ID, &ref.CreatedAt, &ref.UpdatedAt)
+	
 	return err
 }
 
 func (r *AchievementRepo) GetReferenceByID(ctx context.Context, id uuid.UUID) (*models.AchievementReference, error) {
 	query := `SELECT id, student_id, mongo_achievement_id, status, submitted_at, verified_at, verified_by, rejection_note, created_at, updated_at FROM achievement_references WHERE id = $1`
+	
 	var model models.AchievementReference
+	
 	err := r.pgDB.QueryRowContext(ctx, query, id).Scan(
 		&model.ID,
 		&model.StudentID,
@@ -83,6 +94,7 @@ func (r *AchievementRepo) GetReferenceByID(ctx context.Context, id uuid.UUID) (*
 		&model.RejectionNote,
 		&model.CreatedAt,
 		&model.UpdatedAt)
+		
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -90,6 +102,32 @@ func (r *AchievementRepo) GetReferenceByID(ctx context.Context, id uuid.UUID) (*
 		return nil, err
 	}
 	return &model, nil
+}
+
+func (r *AchievementRepo) UpdateStatus(ctx context.Context, ref *models.AchievementReference) error {
+	query := `
+		UPDATE achievement_references 
+		SET status = $1, verified_by = $2, verified_at = $3, rejection_note = $4, updated_at = NOW() 
+		WHERE id = $5
+	`
+	
+	result, err := r.pgDB.ExecContext(ctx, query, 
+		ref.Status, 
+		ref.VerifiedBy,    
+		ref.VerifiedAt,    
+		ref.RejectionNote, 
+		ref.ID,
+	)
+	
+	if err != nil {
+		return err
+	}
+	
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return errors.New("no achievement status updated (id not found)")
+	}
+	return nil
 }
 
 func (r *AchievementRepo) GetAllByStudentID(ctx context.Context, studentID uuid.UUID) ([]models.AchievementReference, error) {
@@ -111,15 +149,59 @@ func (r *AchievementRepo) GetAllByStudentID(ctx context.Context, studentID uuid.
 	return refs, nil
 }
 
-func (r *AchievementRepo) UpdateStatus(ctx context.Context, id uuid.UUID, status string) error {
-	query := `UPDATE achievement_references SET status = $1, updated_at = NOW() WHERE id = $2`
-	result, err := r.pgDB.ExecContext(ctx, query, status, id)
-	if err != nil {
-		return err
-	}
-	rows, _ := result.RowsAffected()
-	if rows == 0 {
-		return errors.New("no achievement status updated")
-	}
-	return nil
+
+
+
+
+
+func (r *AchievementRepo) GetAll(ctx context.Context, status string) ([]models.AchievementReference, error) {
+    var query string
+    var rows *sql.Rows
+    var err error
+
+    
+    if status != "" {
+        query = `
+            SELECT id, student_id, mongo_achievement_id, status, submitted_at, verified_at, verified_by, rejection_note, created_at, updated_at 
+            FROM achievement_references 
+            WHERE status = $1 
+            ORDER BY created_at DESC
+        `
+        rows, err = r.pgDB.QueryContext(ctx, query, status)
+    } else {
+        query = `
+            SELECT id, student_id, mongo_achievement_id, status, submitted_at, verified_at, verified_by, rejection_note, created_at, updated_at 
+            FROM achievement_references 
+            ORDER BY created_at DESC
+        `
+        rows, err = r.pgDB.QueryContext(ctx, query)
+    }
+
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    var refs []models.AchievementReference
+    for rows.Next() {
+        var r models.AchievementReference
+
+        err := rows.Scan(
+            &r.ID, 
+            &r.StudentID, 
+            &r.MongoAchievementID, 
+            &r.Status, 
+            &r.SubmittedAt,
+            &r.VerifiedAt,
+            &r.VerifiedBy,
+            &r.RejectionNote,
+            &r.CreatedAt, 
+            &r.UpdatedAt,
+        )
+        if err != nil {
+            return nil, err
+        }
+        refs = append(refs, r)
+    }
+    return refs, nil
 }

@@ -62,68 +62,57 @@ func (s *AuthService) Register(c *fiber.Ctx) error {
 }
 
 func (s *AuthService) Login(c *fiber.Ctx) error {
-	var req models.LoginRequest
+    var req models.LoginRequest
 
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "request body gk valid"})
-	}
-	ctx := c.Context()
+    if err := c.BodyParser(&req); err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+    }
 
-	user, err := s.userRepo.GetByUsernameOrEmail(ctx, req.Username)
+    
+    ctx := c.Context()
+    user, err := s.userRepo.GetByUsernameOrEmail(ctx, req.Username)
+    if err != nil {
+        return c.Status(401).JSON(fiber.Map{"error": "Username atau password salah"})
+    }
 
-	if err != nil || user == nil {
-		return c.Status(401).JSON(fiber.Map{"error": "username atau password salah"})
-	}
+    
+    if !utils.CheckPassword(req.Password, user.PasswordHash) {
+        return c.Status(401).JSON(fiber.Map{"error": "Username atau password salah"})
+    }
 
-	if !utils.CheckPassword(req.Password, user.PasswordHash) {
-		return c.Status(401).JSON(fiber.Map{"error": "username atau password salah"})
-	}
+    
+    permissions, err := s.permissionRepo.GetByRoleID(ctx, user.RoleID)
+    
+    
+    var permissionList []string
+    if err == nil {
+        for _, p := range permissions {
+            permissionList = append(permissionList, p.Name)
+        }
+    }
+    
 
-	if !user.IsActive {
-		return c.Status(403).JSON(fiber.Map{"error": "akun anda mati"})
-	}
-
-	
-	roleName := "Unknown"
-	var Permission []string
-	if user.Role != nil {
-		roleName = user.Role.Name
-
-		perms, err :=s.permissionRepo.GetByRoleID(ctx,user.Role.ID)
-		if err == nil{
-			for _, p := range perms{
-				Permission = append(Permission, p.Name)
-			}
-
-		}
-	}
-
-	token, err := utils.GenerateToken(user.ID, roleName)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Gagal membuat token"})
-	}
-
-	refreshToken, err := utils.GenerateRefreshToken(user.ID)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Gagal membuat refresh token"})
-	}
-
-	return c.JSON(fiber.Map{
-		"status": "success",
-		"data": fiber.Map{
-			"token":        token,
-			"refreshToken": refreshToken,
-			"user": fiber.Map{
-				"id":          user.ID,
-				"username":    user.Username,
-				"fullName":    user.FullName, 
-				"role":        roleName,
-				"permissions": Permission,   
-			},
-		},
-	})
+    
+    token, refreshToken, err := utils.GenerateToken(user.ID, user.Role.Name)
+    if err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": "Gagal generate token"})
+    }
+    return c.JSON(fiber.Map{
+        "status": "success",
+        "data": fiber.Map{
+            "token":        token,
+            "refreshToken": refreshToken,
+            "user": fiber.Map{
+                "id":       user.ID,
+                "username": user.Username,
+                "fullName": user.FullName,
+                "role":     user.Role.Name,
+                
+                "permissions": permissionList, 
+            },
+        },
+    })
 }
-
 func (s *AuthService) GetProfile(c *fiber.Ctx) error {
 	userIDStr := c.Locals("user_id").(string)
 	userID, err := uuid.Parse(userIDStr)

@@ -18,22 +18,31 @@ func getSecret() []byte {
 	return []byte(os.Getenv("JWT_SECRET"))
 }
 
-func GenerateToken(userID uuid.UUID, roleName string) (string, error) {
-	secret := os.Getenv("JWT_SECRET")
-	
-	claims := JWTClaims{
-		UserID:   userID,
-		RoleName: roleName,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)), // Expire 1 hari
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
+func GenerateToken(userID uuid.UUID, roleName string) (string, string, error) {
+	claims := jwt.MapClaims{
+		"user_id": userID,
+		"role":    roleName,
+		"exp":     time.Now().Add(time.Hour * 24).Unix(), 
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	accessTokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		return "", "", err
+	}
+	refreshClaims := jwt.MapClaims{
+		"user_id": userID,
+		"role":    roleName,
+		"type":    "refresh_token", 
+		"exp":     time.Now().Add(time.Hour * 24 * 7).Unix(), 
+	}
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+	refreshTokenString, err := refreshToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		return "", "", err
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secret))
+	return accessTokenString, refreshTokenString, nil
 }
-
 func GenerateAccessToken(userID uuid.UUID, roleName string) (string, error) {
 	claims := JWTClaims{
 		UserID:   userID,
