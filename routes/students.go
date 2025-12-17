@@ -11,12 +11,12 @@ import (
 func StudentRoutes(router fiber.Router, studentService *service.StudentService) {
 	
 	
-	studens := router.Group("/students",middleware.AuthProtected())
+	students := router.Group("/students",middleware.AuthProtected())
 	
 
-	studens.Post("/", studentService.Create)
-	studens.Get("/current", studentService.GetCurrentStudent)
-	studens.Put("/:id/lecture", studentService.SetAdvisor)
+	students.Post("/", studentService.Create)
+	students.Get("/current", studentService.GetCurrentStudent)
+	students.Put("/:id/advisor", middleware.VerifyRole("Admin"), studentService.AssignAdvisor)
 	
 
 	

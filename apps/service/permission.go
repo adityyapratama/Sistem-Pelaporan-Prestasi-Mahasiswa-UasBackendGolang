@@ -17,7 +17,7 @@ func NewPermissionService(permissionRepo repository.PermissionRepository) *Permi
 }
 
 func ( s *PermissionService) Create( c *fiber.Ctx) error{
-	var req models.Permission
+	var req models.CreatePermissionRequest
 
 	if err := c.BodyParser(&req) ; err !=nil{
 		return c.Status(400).JSON(fiber.Map{"error" :"request body gk valid"})
@@ -27,14 +27,22 @@ func ( s *PermissionService) Create( c *fiber.Ctx) error{
 		return c.Status(400).JSON(fiber.Map{"error" : " isi form wajib di isi semua"})
 	}
 
+	newPermission := &models.Permission{
+		Name:        req.Name,
+		Resource:    req.Resource,
+		Action:      req.Action,
+		Description: req.Description,
+		// ID akan digenerate otomatis di database (serial/uuid_generate_v4) atau di repo
+	}
+
 	ctx := c.Context()
-	if err := s.permissionRepo.Create(ctx, &req) ; err != nil{
-		return c.Status(500).JSON(fiber.Map{"error": "Gagal membuat permission"})
+	if err := s.permissionRepo.Create(ctx, newPermission) ; err != nil{
+		return c.Status(500).JSON(err)
 	}
 
 	return c.Status(201).JSON(fiber.Map{
 		"message" :"data permission berhasil di buat",
-		"data" : req,
+		"data" : newPermission,
 	})
 }
 

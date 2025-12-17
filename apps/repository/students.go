@@ -17,27 +17,31 @@ func NewStudentRepository(db *sql.DB) *PostStudentRepository {
 	return &PostStudentRepository{db: db}
 }
 
-func (r *PostStudentRepository) Create(ctx context.Context, s *models.Students) error {
+func (r *PostStudentRepository) Create(ctx context.Context, student *models.Students) error {
 	query := `
-		INSERT INTO students (user_id, student_id, program_study, academic_year)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO students (user_id, student_id, program_study, academic_year, created_at)
+		VALUES ($1, $2, $3, $4, NOW())
 		RETURNING id, created_at
 	`
-	err := r.db.QueryRowContext(ctx, query, s.UserID, s.StudentID, s.ProgramStudy, s.AcademicYear).Scan(&s.ID, &s.CreatedAt)
+	err := r.db.QueryRowContext(ctx, query, 
+		student.UserID, 
+		student.StudentID, 
+		student.ProgramStudy, 
+		student.AcademicYear,
+	).Scan(&student.ID, &student.CreatedAt)
+	
 	return err
 }
 
+
+
 func (r *PostStudentRepository) GetByUserID(ctx context.Context, UserID uuid.UUID) (*models.Students, error) {
-	query := `SELECT id, user_id, student_id, program_study, academic_year, advisor_id, created_at FROM students WHERE user_id = $1`
+	query := `SELECT id, user_id, student_id, program_study, academic_year, advisor_id, created_at 
+	          FROM students WHERE user_id = $1`
+	
 	var s models.Students
 	err := r.db.QueryRowContext(ctx, query, UserID).Scan(
-		&s.ID,           
-		&s.UserID,        
-		&s.StudentID,     
-		&s.ProgramStudy,  
-		&s.AcademicYear,  
-		&s.AdvisorID,     
-		&s.CreatedAt,     
+		&s.ID, &s.UserID, &s.StudentID, &s.ProgramStudy, &s.AcademicYear, &s.AdvisorID, &s.CreatedAt,
 	)
 
 	if err != nil {
@@ -101,3 +105,17 @@ func (r *PostStudentRepository) Update(ctx context.Context, s *models.Students) 
 	return nil
 }
 
+
+func (r *PostStudentRepository) AssignAdvisor(ctx context.Context, studentID uuid.UUID, advisorID uuid.UUID)error{
+	query :=`UPDATE students SET advisor_id =$1 WHERE id =$2 `
+	result, err := r.db.ExecContext(ctx,query,advisorID,studentID)
+	if err != nil {
+		return err
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return errors.New("student not found")
+	}
+	return nil
+
+}

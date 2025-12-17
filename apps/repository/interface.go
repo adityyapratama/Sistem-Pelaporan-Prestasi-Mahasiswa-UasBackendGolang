@@ -36,6 +36,7 @@ type StudentsRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*models.Students, error)
 	GetAll(ctx context.Context) ([]models.Students, error)
 	Update(ctx context.Context, student *models.Students) error
+	AssignAdvisor(ctx context.Context, studentID uuid.UUID, advisorID uuid.UUID)error
 }
 
 type LectureRepository interface {
@@ -52,6 +53,8 @@ type AchievementRepository interface {
 	CreateReference(ctx context.Context, ref *models.AchievementReference) error
 	GetReferenceByID(ctx context.Context, id uuid.UUID) (*models.AchievementReference, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, status string) error
+
+	GetAll(ctx context.Context, status string) ([]models.AchievementReference, error)
 
 	GetAllByStudentID(ctx context.Context, studentID uuid.UUID) ([]models.AchievementReference, error)
 }

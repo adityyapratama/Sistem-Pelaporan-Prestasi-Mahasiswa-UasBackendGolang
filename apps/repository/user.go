@@ -95,14 +95,12 @@ query := `
 }
 
 func (r *PostUserRepository) Create(ctx context.Context, User *models.User) error {
-	User.ID = uuid.New()
 	query := `
-		INSERT INTO users (id, username, email, password_hash, full_name, role_id)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		INSERT INTO users (username, email, password_hash, full_name, role_id)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING created_at, updated_at, is_active
 	`
 	err := r.db.QueryRowContext(ctx, query,
-		User.ID,           
 		User.Username,     
 		User.Email,        		
 		User.PasswordHash, 

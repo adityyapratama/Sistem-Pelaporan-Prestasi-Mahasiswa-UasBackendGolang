@@ -26,6 +26,7 @@ func NewHAchievementRepo(pgDB *sql.DB, mongoDB *mongo.Database) *AchievementRepo
 	}
 }
 
+// to mongo database
 func (r *AchievementRepo) CreateDetail(ctx context.Context, detail *models.AchievementDetail) error {
 	collection := r.mongoDB.Collection("achievements")
 	detail.ID = primitive.NewObjectID()
@@ -52,6 +53,8 @@ func (r *AchievementRepo) GetDetailByID(ctx context.Context, mongoID string) (*m
 	return &detail, nil
 }
 
+
+// to postgress
 func (r *AchievementRepo) CreateReference(ctx context.Context, ref *models.AchievementReference) error {
 	query := `
 		INSERT INTO achievement_references (student_id, mongo_achievement_id, status)

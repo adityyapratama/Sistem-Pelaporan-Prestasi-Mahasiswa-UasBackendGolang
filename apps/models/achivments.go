@@ -10,7 +10,7 @@ import (
 type Attachment struct {
 	FileName   string    `bson:"fileName" json:"fileName"`
 	FileURL    string    `bson:"fileUrl" json:"fileUrl"`
-	FileType   string    `bson:"fileType" json:"fileType"` // misal: "pdf", "jpg"
+	FileType   string    `bson:"fileType" json:"fileType"` 
 	UploadedAt time.Time `bson:"uploadedAt" json:"uploadedAt"`
 }
 
@@ -34,7 +34,7 @@ type AchievementDetail struct {
 type AchievementReference struct {
 	ID                 uuid.UUID  `json:"id" db:"id"`
 	StudentID          uuid.UUID  `json:"student_id" db:"student_id"`
-	MongoAchievementID string     `json:"mongo_achievement_id" db:"mongo_achievement_id"` // ID dari Mongo
+	MongoAchievementID string     `json:"mongo_achievement_id" db:"mongo_achievement_id"` 
 	Status             string     `json:"status" db:"status"`                             // draft, submitted, verified, rejected
 	SubmittedAt        *time.Time `json:"submitted_at" db:"submitted_at"`
 	VerifiedAt         *time.Time `json:"verified_at" db:"verified_at"`

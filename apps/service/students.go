@@ -74,7 +74,7 @@ func (s *StudentService) GetCurrentStudent(c *fiber.Ctx) error {
 
 }
 
-func (s *StudentService) SetAdvisor(c *fiber.Ctx)error {
+func (s *StudentService) Update(c *fiber.Ctx)error {
 	studentIDStr := c.Params("id")
 	studentID, err := uuid.Parse(studentIDStr)
 
@@ -112,3 +112,37 @@ func (s *StudentService) SetAdvisor(c *fiber.Ctx)error {
 	})
 
 }
+
+
+func (s *StudentService) AssignAdvisor(c *fiber.Ctx)error {
+	studentIDStr := c.Params("id")
+    studentID, err := uuid.Parse(studentIDStr)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "id mahasiswa tidak valid"})
+	}
+
+	var req models.SetAdvisorRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Request body tidak valid"})
+	}
+	
+	advisorUUID, err := uuid.Parse(req.AdvisorID)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "ID Dosen Wali tidak valid"})
+	}
+
+	ctx :=c.Context()
+	err = s.studentRepo.AssignAdvisor(ctx, studentID, advisorUUID)
+    
+    if err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": "Gagal menetapkan dosen wali: " + err.Error()})
+    }
+
+	return c.Status(200).JSON(fiber.Map{
+		"message": "Berhasil! Dosen wali sudah ditetapkan.",
+		"student_id": studentID,
+		"advisor_id": advisorUUID,
+
+	})
+	
+	}

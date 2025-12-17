@@ -20,7 +20,7 @@ func NewLectureService(lectureRepo repository.LectureRepository) *LectureService
 
 // [FIX] Ganti 'unc' jadi 'func'
 func (s *LectureService) Create(c *fiber.Ctx) error {
-    var req models.CreateLecturerRequest
+    var req models.CreateLectureRequest
 
     if err := c.BodyParser(&req); err != nil {
         return c.Status(400).JSON(fiber.Map{"error": "Request body tidak valid"})
