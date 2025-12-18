@@ -1,13 +1,13 @@
 package service
 
 import (
+	"os/user"
 	"uas-pelaporan-prestasi-mahasiswa/apps/models"
 	"uas-pelaporan-prestasi-mahasiswa/apps/repository"
 	"uas-pelaporan-prestasi-mahasiswa/utils"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	
 )
 
 type AuthService struct {
@@ -257,3 +257,13 @@ func (s *AuthService) UpdateRoleUser(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Role user berhasil diupdate"})
 	
 }
+
+
+// func (s *AuthService) Logout(c *fiber.Ctx) error {
+// 	userIDSTr := c.Locals("id")
+// 	if err != nil{
+// 		return c.Status(200).JSON(fiber.Map{"messege":"id tidak di temukan"})
+// 	}
+
+// 	userID := uuid.Parse(userIDSTr.string())
+// }

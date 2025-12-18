@@ -57,13 +57,16 @@ func (r *PostStudentRepository) GetByUserID(ctx context.Context, UserID uuid.UUI
 func (r *PostStudentRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Students, error) {
 	query := `SELECT id, user_id, student_id, program_study, academic_year, advisor_id, created_at FROM students WHERE id = $1`
 	var s models.Students
-	err := r.db.QueryRowContext(ctx, query, id).Scan(
+	if err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&s.ID, &s.UserID, &s.StudentID, &s.ProgramStudy, &s.AcademicYear, &s.AdvisorID, &s.CreatedAt,
-	)
-	if err != nil {
-		return nil, err
+	) ; err !=nil{
+		if errors.Is(err, sql.ErrNoRows) {
+        return nil, nil
+    
+	return nil,err}
 	}
-	return &s, nil
+	
+	 return &s, nil
 }
 
 
@@ -118,4 +121,23 @@ func (r *PostStudentRepository) AssignAdvisor(ctx context.Context, studentID uui
 	}
 	return nil
 
+}
+
+func (r *PostStudentRepository) GetByAdvisorID(ctx context.Context, advisorID uuid.UUID) ([]models.Students, error){
+	query := `SELECT id, user_id, student_id, program_study, academic_year, advisor_id, created_at 
+              FROM students WHERE advisor_id = $1`
+	 rows, err := r.db.QueryContext(ctx, query, advisorID)
+    if err != nil {
+        return nil, err
+    }
+	defer rows.Close()
+	var student []models.Students
+	for rows.Next(){
+		var s models.Students
+		if err:=rows.Scan(&s.ID, &s.UserID, &s.StudentID, &s.ProgramStudy, &s.AcademicYear, &s.AdvisorID, &s.CreatedAt) ; err!=nil{
+			return  nil, err
+		}
+		student= append(student, s)
+	}
+	return  student,nil
 }

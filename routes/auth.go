@@ -16,14 +16,15 @@ func RegisterAuthRoutes(router fiber.Router, authService *service.AuthService) {
 	
 	auth.Post("Register",authService.Register)
 	auth.Post("Login",authService.Login)
-	auth.Put("/:id",authService.UpdateUser)
+	auth.Put("user/:id",authService.UpdateUser)
 	auth.Get("/",authService.GetAllUser)
 
 	// update role
 	auth.Put("/:id",authService.UpdateRoleUser)
 
-	auth.Get("profiles",middleware.AuthProtected(),authService.GetProfile)
+	auth.Get("profile",middleware.AuthProtected(),authService.GetProfile)
 	auth.Post("/refresh", authService.RefreshToken)
+	auth.Delete("/:id", middleware.VerifyRole("Admin"),authService.DeleteUser)
 
 
 }

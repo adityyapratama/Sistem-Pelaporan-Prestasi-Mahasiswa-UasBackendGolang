@@ -1,6 +1,7 @@
 package service
 
 import (
+	
 	"uas-pelaporan-prestasi-mahasiswa/apps/models"
 	"uas-pelaporan-prestasi-mahasiswa/apps/repository"
 
@@ -74,6 +75,26 @@ func (s *StudentService) GetCurrentStudent(c *fiber.Ctx) error {
 
 }
 
+func (s *StudentService) GetByID(c *fiber.Ctx) error {
+	 studentIDStr := c.Params("id")
+	studentID, _ := uuid.Parse(studentIDStr)
+
+	ctx := c.Context()
+	student, err := s.studentRepo.GetByID(ctx, studentID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Gagal mengambil data"})
+	}
+	if student == nil {
+		return c.Status(404).JSON(fiber.Map{"error": "mahasiswa tidak ditemukan"})
+	}
+	
+	return c.JSON(fiber.Map{
+		"data" :student,
+	})
+
+}
+
+
 func (s *StudentService) Update(c *fiber.Ctx)error {
 	studentIDStr := c.Params("id")
 	studentID, err := uuid.Parse(studentIDStr)
@@ -146,3 +167,33 @@ func (s *StudentService) AssignAdvisor(c *fiber.Ctx)error {
 	})
 	
 	}
+
+func (s *StudentService) GetAll(c *fiber.Ctx) error {
+	ctx := c.Context()
+	students, err := s.studentRepo.GetAll(ctx)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Gagal mengambil data students"})
+	}
+	return c.JSON(fiber.Map{"data": students})
+}
+
+
+
+
+func (s *StudentService) GetByAdvisorID(c *fiber.Ctx) error {
+	 advisorIDStr := c.Params("id")
+	advisorID, _ := uuid.Parse(advisorIDStr)
+
+	ctx := c.Context()
+	student, err := s.studentRepo.GetByAdvisorID(ctx, advisorID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Gagal mengambil data"})
+	}
+	if student == nil {
+		return c.Status(404).JSON(fiber.Map{"error": "mahasiswa tidak ditemukan"})
+	}
+	return c.JSON(fiber.Map{
+		"data" :student,
+	})
+
+}

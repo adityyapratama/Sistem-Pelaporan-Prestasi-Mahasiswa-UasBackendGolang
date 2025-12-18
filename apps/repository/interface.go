@@ -37,6 +37,7 @@ type StudentsRepository interface {
 	GetAll(ctx context.Context) ([]models.Students, error)
 	Update(ctx context.Context, student *models.Students) error
 	AssignAdvisor(ctx context.Context, studentID uuid.UUID, advisorID uuid.UUID)error
+	GetByAdvisorID(ctx context.Context, advisorID uuid.UUID) ([]models.Students, error)
 }
 
 type LectureRepository interface {
