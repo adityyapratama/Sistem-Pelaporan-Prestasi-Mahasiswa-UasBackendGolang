@@ -1,7 +1,6 @@
 package service
 
 import (
-	"os/user"
 	"uas-pelaporan-prestasi-mahasiswa/apps/models"
 	"uas-pelaporan-prestasi-mahasiswa/apps/repository"
 	"uas-pelaporan-prestasi-mahasiswa/utils"
@@ -258,12 +257,14 @@ func (s *AuthService) UpdateRoleUser(c *fiber.Ctx) error {
 	
 }
 
+func (s *AuthService) Logout(c *fiber.Ctx) error {
+    userIdStr := c.Locals("user_id")
+    if userIdStr == nil {
+        return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+    }
 
-// func (s *AuthService) Logout(c *fiber.Ctx) error {
-// 	userIDSTr := c.Locals("id")
-// 	if err != nil{
-// 		return c.Status(200).JSON(fiber.Map{"messege":"id tidak di temukan"})
-// 	}
-
-// 	userID := uuid.Parse(userIDSTr.string())
-// }
+    return c.Status(200).JSON(fiber.Map{
+        "status":  "success",
+        "message": "Berhasil logout",
+    })
+}

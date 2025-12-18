@@ -25,6 +25,7 @@ func RegisterAuthRoutes(router fiber.Router, authService *service.AuthService) {
 	auth.Get("profile",middleware.AuthProtected(),authService.GetProfile)
 	auth.Post("/refresh", authService.RefreshToken)
 	auth.Delete("/:id", middleware.VerifyRole("Admin"),authService.DeleteUser)
+	auth.Post("logout",middleware.AuthProtected(),authService.Logout)
 
 
 }

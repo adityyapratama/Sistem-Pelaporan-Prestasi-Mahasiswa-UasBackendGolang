@@ -61,4 +61,8 @@ type AchievementRepository interface {
 
     GetAll(ctx context.Context, status string) ([]models.AchievementReference, error)
     GetAllByStudentID(ctx context.Context, studentID uuid.UUID) ([]models.AchievementReference, error)
+
+	UpdateDetail(ctx context.Context, mongoID string, updateData *models.AchievementDetail) error
+
+	GetAllDetailsFromMongo(ctx context.Context) ([]models.AchievementDetail, error) 
 }

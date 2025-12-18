@@ -205,3 +205,44 @@ func (r *AchievementRepo) GetAll(ctx context.Context, status string) ([]models.A
     }
     return refs, nil
 }
+
+
+
+
+func (r *AchievementRepo) UpdateDetail(ctx context.Context, mongoID string, updateData *models.AchievementDetail) error {
+    objID, _ := primitive.ObjectIDFromHex(mongoID)
+    
+
+    filter := bson.M{"_id": objID}
+    update := bson.M{
+        "$set": bson.M{
+            "title":            updateData.Title,
+            "description":      updateData.Description,
+            "achievement_type": updateData.AchievementType,
+            "details":          updateData.Details,
+            "attachments":      updateData.Attachments,
+            "tags":             updateData.Tags,
+            "updated_at":       time.Now(),
+        },
+    }
+
+    
+    _, err := r.mongoDB.Collection("achievements").UpdateOne(ctx, filter, update)
+    
+    return err
+}
+
+func (r *AchievementRepo) GetAllDetailsFromMongo(ctx context.Context) ([]models.AchievementDetail, error) {
+    cursor, err := r.mongoDB.Collection("achievements").Find(ctx, bson.M{})
+    if err != nil {
+        return nil, err
+    }
+    defer cursor.Close(ctx)
+
+    var details []models.AchievementDetail
+    if err = cursor.All(ctx, &details); err != nil {
+        return nil, err
+    }
+
+    return details, nil
+}

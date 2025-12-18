@@ -44,7 +44,7 @@ type AchievementReference struct {
 	UpdatedAt          time.Time  `json:"updated_at" db:"updated_at"`
 }
 
-// 3. Request Body (Update juga biar frontend kirim object lengkap)
+
 type CreateAchievementRequest struct {
 	Type        string                 `json:"type" validate:"required"`
 	Title       string                 `json:"title" validate:"required"`
@@ -52,4 +52,11 @@ type CreateAchievementRequest struct {
 	Details     map[string]interface{} `json:"details"`
 	Tags        []string               `json:"tags"`
 	Attachments []Attachment           `json:"attachments"`
+}
+
+
+
+type VerifyAchievementRequest struct {
+    Status string `json:"status"` // "verified" / "rejected"
+    Notes  string `json:"notes"`  // alasam
 }
