@@ -1,135 +1,121 @@
-# Framework Web
-go get github.com/gofiber/fiber/v2
-
-# Driver Database
-go get github.com/lib/pq             # Driver PostgreSQL
-go get go.mongodb.org/mongo-driver/mongo # Driver MongoDB (BARU)
-
-# Utilities
-go get github.com/joho/godotenv      # Load .env
-go get github.com/golang-jwt/jwt/v5  # JWT Token
-go get golang.org/x/crypto/bcrypt    # Hash Password
-go get github.com/google/uuid        # Buat generate ID unik (UUID)
+Tentu, ini adalah versi lengkap dan "bersih" yang sudah saya optimasi agar terlihat seperti ditulis oleh developer untuk tim internal. Anda bisa langsung menyalin seluruh blok kode di bawah ini ke file `README.md` Anda.
 
 
-database postgress : 
 
-users {
-id: UUID PRIMARY KEY
-username: VARCHAR(50) UNIQUE NOT NULL
-email: VARCHAR(100) UNIQUE NOT NULL
-password_hash: VARCHAR(255) NOT NULL
-full_name: VARCHAR(100) NOT NULL
-role_id: UUID FOREIGN KEY -> roles.id
-is_active: BOOLEAN DEFAULT true
-created_at: TIMESTAMP DEFAULT NOW()
-updated_at: TIMESTAMP DEFAULT NOW()
-}
+```markdown
+# 🚀 API Testing Guide - Sistem Pelaporan Prestasi Mahasiswa
 
-roles {
-id: UUID PRIMARY KEY
-name: VARCHAR(50) UNIQUE NOT NULL
-description: TEXT
-created_at: TIMESTAMP DEFAULT NOW()
-}
+Panduan ini berisi langkah-langkah untuk melakukan testing API secara urut agar tidak terjadi error relasi database. Pastikan mengikuti tahapan dari registrasi hingga verifikasi.
 
-permissions {
-id: UUID PRIMARY KEY
-name: VARCHAR(100) UNIQUE NOT NULL
-resource: VARCHAR(50) NOT NULL
-action: VARCHAR(50) NOT NULL
-description: TEXT
-}
+## 🛠 Persiapan Awal
 
-role_permissions {
-role_id: UUID FOREIGN KEY -> roles.id
-permission_id: UUID FOREIGN KEY -> permissions.id
-PRIMARY KEY (role_id, permission_id)
-}
+1. **Jalankan Database & Server:**
+   ```bash
+   # Nyalakan PostgreSQL via Docker
+   docker compose up -d
 
-students {
-id: UUID PRIMARY KEY
-user_id: UUID FOREIGN KEY -> users.id
-student_id: VARCHAR(20) UNIQUE NOT NULL
-program_study: VARCHAR(100)
-academic_year: VARCHAR(10)
-advisor_id: UUID FOREIGN KEY -> lecturers.id
-created_at: TIMESTAMP DEFAULT NOW()
-}
+   # Jalankan Server Go
+   go run main.go
 
-lecturers {
-id: UUID PRIMARY KEY
-user_id: UUID FOREIGN KEY -> users.id
-lecturer_id: VARCHAR(20) UNIQUE NOT NULL
-department: VARCHAR(100)
-created_at: TIMESTAMP DEFAULT NOW()
-}
+```
+
+2. **Import Postman Collection:**
+Gunakan file `Sistem_Pelaporan_Prestasi_Mahasiswa.postman_collection.json`.
+3. **Set Role ID di Postman Variables:**
+Karena sistem menggunakan UUID, ambil ID role dari database setelah sistem berjalan:
+```sql
+SELECT id, name FROM roles;
+
+```
 
 
-achievement_references {
-id: UUID PRIMARY KEY
-student_id: UUID FOREIGN KEY -> students.id
-mongo_achievement_id: VARCHAR(24) NOT NULL
-status: ENUM('draft', 'submitted', 'verified', 'rejected')
-submitted_at: TIMESTAMP
-verified_at: TIMESTAMP
-verified_by: UUID FOREIGN KEY -> users.id
-rejection_note: TEXT
-created_at: TIMESTAMP DEFAULT NOW()
-updated_at: TIMESTAMP DEFAULT NOW()
-}
+Copy-paste UUID tersebut ke **Collection Variables** di Postman:
+* `role_id_admin`
+* `role_id_dosen`
+* `role_id_mahasiswa`
 
-database mongoDB:
+
+
+---
+
+## 🔄 Urutan Testing (Happy Path)
+
+### Tahap 1: Auth & User Setup
+
+Lakukan registrasi untuk ketiga role utama.
+
+1. **Register & Login Admin**: Untuk mendapatkan akses awal.
+2. **Register & Login Dosen**: Login diperlukan untuk mendapatkan token dosen.
+3. **Register & Login Mahasiswa**: Login diperlukan untuk mendapatkan token mahasiswa.
+4. **Cek Profile**: Gunakan endpoint `/auth/profile` untuk memastikan token valid.
+
+### Tahap 2: Profiling (Data Master)
+
+**PENTING:** Anda tidak bisa membuat prestasi sebelum profil dosen/mahasiswa terdaftar di tabel SQL.
+
+1. **Dosen**: POST `/lectures` (Lengkapi data NIP/Departemen).
+2. **Mahasiswa**: POST `/students` (Lengkapi data NIM/Prodi).
+3. **Assign Pembimbing**: Login sebagai **Admin**, lalu gunakan `PUT /students/{id}/advisor` untuk memplot dosen ke mahasiswa.
+
+### Tahap 3: Alur Prestasi
+
+1. **Upload Lampiran**: POST `/achievements/upload` (Simpan URL filenya).
+2. **Create Achievement**: POST `/achievements`. Status awal adalah `draft`.
+3. **Submit**: PATCH `/achievements/{id}/submit`. Status berubah jadi `submitted`. Data sekarang muncul di dashboard Dosen.
+
+### Tahap 4: Verifikasi & Laporan
+
+1. **Dosen Verify**: Login sebagai Dosen, lakukan PATCH `/achievements/{id}/verify`.
+2. **Admin Report**: Cek statistik akhir di `/reports/statistics`.
+
+---
+
+## 📋 Contoh Payload Penting
+
+### 1. Buat Prestasi (Mahasiswa)
+
+```json
 {
-_id: ObjectId,
-studentId: UUID (reference to PostgreSQL),
-achievementType: String, // 'academic', 'competition', 'organization',
-'publication', 'certification', 'other'
-title: String,
-description: String,
-// Field dinamis berdasarkan tipe prestasi
-details: {
-// Untuk competition
-competitionName?: String,
-competitionLevel?: String, // 'international', 'national', 'regional',
-'local'
-rank?: Number,
-medalType?: String,
-// Untuk publication
-publicationType?: String, // 'journal', 'conference', 'book'
-publicationTitle?: String,
-authors?: [String],
-publisher?: String,
-issn?: String,
-// Untuk organization
-organizationName?: String,
-position?: String,
-period?: {
-start: Date,
-end: Date
-},
-// Untuk certification
-certificationName?: String,
-issuedBy?: String,
-certificationNumber?: String,
-validUntil?: Date,
-// Field umum yang bisa ada
-eventDate?: Date,
-location?: String,
-organizer?: String,
-score?: Number,
-
-
-customFields?: Object // untuk field tambahan yang tidak terdefinisi
-},
-attachments: [{
-fileName: String,
-fileUrl: String,
-fileType: String,
-uploadedAt: Date
-}],
-tags: [String],
-points: Number, // poin prestasi untuk keperluan scoring
-createdAt: Date,
-updatedAt: Date
+    "type": "competition",
+    "title": "Juara 1 Hackathon Nasional 2024",
+    "description": "Smart City Innovation",
+    "details": {
+        "event_name": "Hackathon Indonesia",
+        "organizer": "Kominfo",
+        "rank": "Juara 1",
+        "team_members": ["Andi", "Budi"]
+    },
+    "tags": ["hackathon", "2024"]
 }
+
+```
+
+### 2. Verifikasi (Dosen)
+
+```json
+{
+    "status": "verified",
+    "notes": "Sertifikat valid, data sesuai dengan bukti fisik."
+}
+
+```
+
+---
+
+## 🚦 Status & Flow Data
+
+| Status | Deskripsi | Aktor |
+| --- | --- | --- |
+| `draft` | Data tersimpan di MongoDB, bisa diedit. | Mahasiswa |
+| `submitted` | Terkunci, menunggu pengecekan dosen. | Mahasiswa |
+| `verified` | Selesai, masuk ke statistik laporan. | Dosen |
+| `rejected` | Ditolak, butuh perbaikan. | Dosen |
+
+## 🔑 Tips Testing
+
+* **Bearer Token**: Pastikan `access_token` dari hasil login dimasukkan ke tab *Authorization* di Postman.
+* **UUID**: Selalu perhatikan UUID yang diminta di URL (seperti `student_id` atau `achievement_id`). Ambil dari response body endpoint sebelumnya.
+* **Database Cleanup**: Jika ingin reset data, jalankan `docker compose down -v` lalu up kembali.
+
+---
+
