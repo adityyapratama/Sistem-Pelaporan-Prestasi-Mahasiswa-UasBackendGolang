@@ -11,7 +11,7 @@ func StudentRoutes(router fiber.Router, studentService *service.StudentService) 
 
 	students := router.Group("/students", middleware.AuthProtected())
 
-	students.Get("/", middleware.VerifyRole("Dosen","Admin"), studentService.GetAll)
+	students.Get("/", middleware.VerifyRole("Dosen","Admin",), studentService.GetAll)
 	students.Get("/advisor/:id", middleware.VerifyRole("Admin"), studentService.GetByAdvisorID)
 	students.Post("/", studentService.Create)
 	students.Get("/current", studentService.GetCurrentStudent)

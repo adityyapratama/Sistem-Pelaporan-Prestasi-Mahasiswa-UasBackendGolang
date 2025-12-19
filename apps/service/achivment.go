@@ -84,7 +84,7 @@ func (s *AchievementService) Create(c *fiber.Ctx) error {
 	newRef := &models.AchievementReference{
 		StudentID:          student.ID,
 		MongoAchievementID: mongoIDString,
-		Status:             "Draft",
+		Status:             "draft",
 		SubmittedAt:        time.Now(),
 	}
 
