@@ -15,16 +15,15 @@ import (
 	"github.com/google/uuid"
 )
 
-
 func TestLogin_TableDriven(t *testing.T) {
-	
-	
-	mockRepo := mocks.NewManualMockUserRepo() 
-	authService := service.NewAuthService(mockRepo)
+
+	// Setup mock repositories
+	mockUserRepo := mocks.NewManualMockUserRepo()
+	mockPermRepo := mocks.NewManualMockPermissionRepo()
+	authService := service.NewAuthService(mockUserRepo, mockPermRepo)
 	app := fiber.New()
 	app.Post("/login", authService.Login)
 
-	
 	passHash, _ := utils.HashPassword("rahasia123")
 	existingUser := &models.User{
 		ID:           uuid.New(),
@@ -33,16 +32,15 @@ func TestLogin_TableDriven(t *testing.T) {
 		IsActive:     true,
 		Role:         &models.Role{Name: "Mahasiswa"},
 	}
-	
-	mockRepo.Create(nil, existingUser)
 
-	
+	mockUserRepo.Create(nil, existingUser)
+
 	tests := []struct {
-		name           string 
+		name           string
 		inputUsername  string
 		inputPassword  string
-		expectedStatus int    
-		wantErr        bool   
+		expectedStatus int
+		wantErr        bool
 	}{
 		{
 			name:           "Login Sukses",
@@ -67,10 +65,9 @@ func TestLogin_TableDriven(t *testing.T) {
 		},
 	}
 
-	
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-	
+
 			reqBody := map[string]string{
 				"username": tt.inputUsername,
 				"password": tt.inputPassword,
@@ -79,16 +76,12 @@ func TestLogin_TableDriven(t *testing.T) {
 			req := httptest.NewRequest("POST", "/login", bytes.NewReader(bodyBytes))
 			req.Header.Set("Content-Type", "application/json")
 
-	
 			resp, err := app.Test(req)
 
-	
-	
 			if err != nil {
 				t.Errorf("Error sistem tidak diharapkan: %v", err)
 			}
 
-	
 			if resp.StatusCode != tt.expectedStatus {
 				t.Errorf("Status code salah! Dapat %d, Harapan %d", resp.StatusCode, tt.expectedStatus)
 			}
@@ -96,23 +89,22 @@ func TestLogin_TableDriven(t *testing.T) {
 	}
 }
 
-
 func TestRegister_TableDriven(t *testing.T) {
-	
-	mockRepo := mocks.NewManualMockUserRepo()
-	authService := service.NewAuthService(mockRepo)
+
+	// Setup mock repositories
+	mockUserRepo := mocks.NewManualMockUserRepo()
+	mockPermRepo := mocks.NewManualMockPermissionRepo()
+	authService := service.NewAuthService(mockUserRepo, mockPermRepo)
 	app := fiber.New()
 	app.Post("/register", authService.Register)
 
-	
 	existingUser := &models.User{
 		ID:       uuid.New(),
 		Username: "sudahada",
 		Email:    "ada@gmail.com",
 	}
-	mockRepo.Create(nil, existingUser)
+	mockUserRepo.Create(nil, existingUser)
 
-	
 	tests := []struct {
 		name           string
 		inputBody      map[string]string
@@ -125,32 +117,30 @@ func TestRegister_TableDriven(t *testing.T) {
 				"email":     "maba@univ.ac.id",
 				"password":  "rahasia123",
 				"full_name": "Maba Univ",
-				"role_id":   uuid.New().String(), 
+				"role_id":   uuid.New().String(),
 			},
-			expectedStatus: 201, 
+			expectedStatus: 201,
 		},
 		{
 			name: "Username Sudah Dipakai",
 			inputBody: map[string]string{
-				"username":  "sudahada", 
+				"username":  "sudahada",
 				"email":     "baru@gmail.com",
 				"password":  "123456",
 				"full_name": "Orang Lama",
 				"role_id":   uuid.New().String(),
 			},
-			expectedStatus: 400, 
+			expectedStatus: 400,
 		},
 		{
 			name: "Input Tidak Lengkap",
 			inputBody: map[string]string{
 				"username": "kosong",
-				
 			},
-			expectedStatus: 400, 
+			expectedStatus: 400,
 		},
 	}
 
-	
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			bodyBytes, _ := json.Marshal(tt.inputBody)
@@ -168,9 +158,6 @@ func TestRegister_TableDriven(t *testing.T) {
 		})
 	}
 }
-
-
-
 
 // func TestRefreshToken_TableDriven(t *testing.T) {
 // 	// 1. Setup
@@ -223,7 +210,7 @@ func TestRegister_TableDriven(t *testing.T) {
 // 				"refresh_token": tt.tokenInput,
 // 			}
 // 			bodyBytes, _ := json.Marshal(reqBody)
-			
+
 // 			req := httptest.NewRequest("POST", "/refresh", bytes.NewReader(bodyBytes))
 // 			req.Header.Set("Content-Type", "application/json")
 

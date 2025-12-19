@@ -25,7 +25,6 @@ func NewAchievementRepo(pgDB *sql.DB, mongoDB *mongo.Database) *AchievementRepo 
 	}
 }
 
-
 func (r *AchievementRepo) CreateDetail(ctx context.Context, detail *models.AchievementDetail) error {
 	collection := r.mongoDB.Collection("achievements")
 	detail.ID = primitive.NewObjectID()
@@ -52,9 +51,6 @@ func (r *AchievementRepo) GetDetailByID(ctx context.Context, mongoID string) (*m
 	return &detail, nil
 }
 
-
-
-
 func (r *AchievementRepo) CreateReference(ctx context.Context, ref *models.AchievementReference) error {
 	query := `
         INSERT INTO achievement_references (
@@ -65,24 +61,24 @@ func (r *AchievementRepo) CreateReference(ctx context.Context, ref *models.Achie
     `
 
 	if ref.Status == "" {
-		ref.Status = "draft" 
+		ref.Status = "draft"
 	}
 
-	err := r.pgDB.QueryRowContext(ctx, query, 
-		ref.StudentID, 
-		ref.MongoAchievementID, 
-		ref.Status, 
-		ref.SubmittedAt, 
+	err := r.pgDB.QueryRowContext(ctx, query,
+		ref.StudentID,
+		ref.MongoAchievementID,
+		ref.Status,
+		ref.SubmittedAt,
 	).Scan(&ref.ID, &ref.CreatedAt, &ref.UpdatedAt)
-	
+
 	return err
 }
 
 func (r *AchievementRepo) GetReferenceByID(ctx context.Context, id uuid.UUID) (*models.AchievementReference, error) {
 	query := `SELECT id, student_id, mongo_achievement_id, status, submitted_at, verified_at, verified_by, rejection_note, created_at, updated_at FROM achievement_references WHERE id = $1`
-	
+
 	var model models.AchievementReference
-	
+
 	err := r.pgDB.QueryRowContext(ctx, query, id).Scan(
 		&model.ID,
 		&model.StudentID,
@@ -94,7 +90,7 @@ func (r *AchievementRepo) GetReferenceByID(ctx context.Context, id uuid.UUID) (*
 		&model.RejectionNote,
 		&model.CreatedAt,
 		&model.UpdatedAt)
-		
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -110,19 +106,19 @@ func (r *AchievementRepo) UpdateStatus(ctx context.Context, ref *models.Achievem
 		SET status = $1, verified_by = $2, verified_at = $3, rejection_note = $4, updated_at = NOW() 
 		WHERE id = $5
 	`
-	
-	result, err := r.pgDB.ExecContext(ctx, query, 
-		ref.Status, 
-		ref.VerifiedBy,    
-		ref.VerifiedAt,    
-		ref.RejectionNote, 
+
+	result, err := r.pgDB.ExecContext(ctx, query,
+		ref.Status,
+		ref.VerifiedBy,
+		ref.VerifiedAt,
+		ref.RejectionNote,
 		ref.ID,
 	)
-	
+
 	if err != nil {
 		return err
 	}
-	
+
 	rows, _ := result.RowsAffected()
 	if rows == 0 {
 		return errors.New("no achievement status updated (id not found)")
@@ -131,7 +127,7 @@ func (r *AchievementRepo) UpdateStatus(ctx context.Context, ref *models.Achievem
 }
 
 func (r *AchievementRepo) GetAllByStudentID(ctx context.Context, studentID uuid.UUID) ([]models.AchievementReference, error) {
-	query := `SELECT id, student_id, mongo_achievement_id, status, created_at, updated_at FROM achievement_references WHERE student_id = $1 ORDER BY created_at DESC`
+	query := `SELECT id, student_id, mongo_achievement_id, status, submitted_at, verified_at, verified_by, rejection_note, created_at, updated_at FROM achievement_references WHERE student_id = $1 AND deleted_at IS NULL ORDER BY created_at DESC`
 	rows, err := r.pgDB.QueryContext(ctx, query, studentID)
 	if err != nil {
 		return nil, err
@@ -140,8 +136,60 @@ func (r *AchievementRepo) GetAllByStudentID(ctx context.Context, studentID uuid.
 	defer rows.Close()
 	var refs []models.AchievementReference
 	for rows.Next() {
+		var ref models.AchievementReference
+		if err := rows.Scan(&ref.ID, &ref.StudentID, &ref.MongoAchievementID, &ref.Status, &ref.SubmittedAt, &ref.VerifiedAt, &ref.VerifiedBy, &ref.RejectionNote, &ref.CreatedAt, &ref.UpdatedAt); err != nil {
+			return nil, err
+		}
+		refs = append(refs, ref)
+	}
+	return refs, nil
+}
+
+func (r *AchievementRepo) GetAll(ctx context.Context, status string) ([]models.AchievementReference, error) {
+	var query string
+	var rows *sql.Rows
+	var err error
+
+	if status != "" {
+		query = `
+            SELECT id, student_id, mongo_achievement_id, status, submitted_at, verified_at, verified_by, rejection_note, created_at, updated_at 
+            FROM achievement_references 
+            WHERE status = $1 AND deleted_at IS NULL
+            ORDER BY created_at DESC
+        `
+		rows, err = r.pgDB.QueryContext(ctx, query, status)
+	} else {
+		query = `
+            SELECT id, student_id, mongo_achievement_id, status, submitted_at, verified_at, verified_by, rejection_note, created_at, updated_at 
+            FROM achievement_references 
+            WHERE deleted_at IS NULL
+            ORDER BY created_at DESC
+        `
+		rows, err = r.pgDB.QueryContext(ctx, query)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var refs []models.AchievementReference
+	for rows.Next() {
 		var r models.AchievementReference
-		if err := rows.Scan(&r.ID, &r.StudentID, &r.MongoAchievementID, &r.Status, &r.CreatedAt, &r.UpdatedAt); err != nil {
+
+		err := rows.Scan(
+			&r.ID,
+			&r.StudentID,
+			&r.MongoAchievementID,
+			&r.Status,
+			&r.SubmittedAt,
+			&r.VerifiedAt,
+			&r.VerifiedBy,
+			&r.RejectionNote,
+			&r.CreatedAt,
+			&r.UpdatedAt,
+		)
+		if err != nil {
 			return nil, err
 		}
 		refs = append(refs, r)
@@ -149,100 +197,64 @@ func (r *AchievementRepo) GetAllByStudentID(ctx context.Context, studentID uuid.
 	return refs, nil
 }
 
-
-
-
-
-
-func (r *AchievementRepo) GetAll(ctx context.Context, status string) ([]models.AchievementReference, error) {
-    var query string
-    var rows *sql.Rows
-    var err error
-
-    
-    if status != "" {
-        query = `
-            SELECT id, student_id, mongo_achievement_id, status, submitted_at, verified_at, verified_by, rejection_note, created_at, updated_at 
-            FROM achievement_references 
-            WHERE status = $1 
-            ORDER BY created_at DESC
-        `
-        rows, err = r.pgDB.QueryContext(ctx, query, status)
-    } else {
-        query = `
-            SELECT id, student_id, mongo_achievement_id, status, submitted_at, verified_at, verified_by, rejection_note, created_at, updated_at 
-            FROM achievement_references 
-            ORDER BY created_at DESC
-        `
-        rows, err = r.pgDB.QueryContext(ctx, query)
-    }
-
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
-
-    var refs []models.AchievementReference
-    for rows.Next() {
-        var r models.AchievementReference
-
-        err := rows.Scan(
-            &r.ID, 
-            &r.StudentID, 
-            &r.MongoAchievementID, 
-            &r.Status, 
-            &r.SubmittedAt,
-            &r.VerifiedAt,
-            &r.VerifiedBy,
-            &r.RejectionNote,
-            &r.CreatedAt, 
-            &r.UpdatedAt,
-        )
-        if err != nil {
-            return nil, err
-        }
-        refs = append(refs, r)
-    }
-    return refs, nil
-}
-
-
-
-
 func (r *AchievementRepo) UpdateDetail(ctx context.Context, mongoID string, updateData *models.AchievementDetail) error {
-    objID, _ := primitive.ObjectIDFromHex(mongoID)
-    
+	objID, _ := primitive.ObjectIDFromHex(mongoID)
 
-    filter := bson.M{"_id": objID}
-    update := bson.M{
-        "$set": bson.M{
-            "title":            updateData.Title,
-            "description":      updateData.Description,
-            "achievement_type": updateData.AchievementType,
-            "details":          updateData.Details,
-            "attachments":      updateData.Attachments,
-            "tags":             updateData.Tags,
-            "updated_at":       time.Now(),
-        },
-    }
+	filter := bson.M{"_id": objID}
+	update := bson.M{
+		"$set": bson.M{
+			"title":            updateData.Title,
+			"description":      updateData.Description,
+			"achievement_type": updateData.AchievementType,
+			"details":          updateData.Details,
+			"attachments":      updateData.Attachments,
+			"tags":             updateData.Tags,
+			"updated_at":       time.Now(),
+		},
+	}
 
-    
-    _, err := r.mongoDB.Collection("achievements").UpdateOne(ctx, filter, update)
-    
-    return err
+	_, err := r.mongoDB.Collection("achievements").UpdateOne(ctx, filter, update)
+
+	return err
 }
 
 func (r *AchievementRepo) GetAllDetailsFromMongo(ctx context.Context) ([]models.AchievementDetail, error) {
-    cursor, err := r.mongoDB.Collection("achievements").Find(ctx, bson.M{})
-    if err != nil {
-        return nil, err
-    }
-    defer cursor.Close(ctx)
+	cursor, err := r.mongoDB.Collection("achievements").Find(ctx, bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
 
-    var details []models.AchievementDetail
-    if err = cursor.All(ctx, &details); err != nil {
-        return nil, err
-    }
+	var details []models.AchievementDetail
+	if err = cursor.All(ctx, &details); err != nil {
+		return nil, err
+	}
 
-    return details, nil
+	return details, nil
+}
+
+func (r *AchievementRepo) SoftDelete(ctx context.Context, id uuid.UUID) error {
+	query := `UPDATE achievement_references SET deleted_at = NOW(), updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL`
+	result, err := r.pgDB.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return errors.New("achievement gkk ditemukan atau id tidakk benar")
+	}
+	return nil
+}
+
+func (r *AchievementRepo) Submit(ctx context.Context, id uuid.UUID) error {
+	query := `UPDATE achievement_references SET status = 'submitted', submitted_at = NOW(), updated_at = NOW() WHERE id = $1 AND deleted_at IS NULL`
+	result, err := r.pgDB.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return errors.New("achievement gkk ditemukan ")
+	}
+	return nil
 }

@@ -13,12 +13,11 @@ func NewApp(
 	studentService *service.StudentService,
 	lectureService *service.LectureService,
 	achievmentService *service.AchievementService,
-	) *fiber.App{
+	reportService *service.ReportService,
+) *fiber.App {
 	app := fiber.New()
 
-	routes.SetupRoutes(app,authService,permService,studentService,lectureService,achievmentService)
-	
-	
+	routes.SetupRoutes(app, authService, permService, studentService, lectureService, achievmentService, reportService)
 
 	return app
 }

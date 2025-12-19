@@ -1,0 +1,1141 @@
+{
+  "info": {
+    "name": "Sistem Pelaporan Prestasi Mahasiswa API",
+    "description": "Koleksi API untuk testing Sistem Pelaporan Prestasi Mahasiswa",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/api/v1"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "user_id",
+      "value": ""
+    },
+    {
+      "key": "student_id",
+      "value": ""
+    },
+    {
+      "key": "lecture_id",
+      "value": ""
+    },
+    {
+      "key": "achievement_id",
+      "value": ""
+    },
+    {
+      "key": "permission_id",
+      "value": ""
+    },
+    {
+      "key": "role_id_admin",
+      "value": ""
+    },
+    {
+      "key": "role_id_dosen",
+      "value": ""
+    },
+    {
+      "key": "role_id_mahasiswa",
+      "value": ""
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "1. Register - Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('user_id', jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"admin\",\n    \"email\": \"admin@university.ac.id\",\n    \"password\": \"Admin123!\",\n    \"full_name\": \"Administrator Sistem\",\n    \"role_id\": \"{{role_id_admin}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/Register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "Register"]
+            },
+            "description": "Mendaftarkan user baru dengan role Admin"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Register - Dosen",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"dosen_budi\",\n    \"email\": \"budi.santoso@university.ac.id\",\n    \"password\": \"Dosen123!\",\n    \"full_name\": \"Dr. Budi Santoso, M.Kom\",\n    \"role_id\": \"{{role_id_dosen}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/Register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "Register"]
+            },
+            "description": "Mendaftarkan user baru dengan role Dosen"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Register - Mahasiswa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"mhs_andi\",\n    \"email\": \"andi.pratama@student.university.ac.id\",\n    \"password\": \"Mahasiswa123!\",\n    \"full_name\": \"Andi Pratama\",\n    \"role_id\": \"{{role_id_mahasiswa}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/Register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "Register"]
+            },
+            "description": "Mendaftarkan user baru dengan role Mahasiswa"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Login - Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data) {",
+                  "    if (jsonData.data.access_token) {",
+                  "        pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+                  "    }",
+                  "    if (jsonData.data.refresh_token) {",
+                  "        pm.collectionVariables.set('refresh_token', jsonData.data.refresh_token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"Admin123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/Login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "Login"]
+            },
+            "description": "Login sebagai Admin"
+          },
+          "response": []
+        },
+        {
+          "name": "5. Login - Dosen",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data) {",
+                  "    if (jsonData.data.access_token) {",
+                  "        pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+                  "    }",
+                  "    if (jsonData.data.refresh_token) {",
+                  "        pm.collectionVariables.set('refresh_token', jsonData.data.refresh_token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"dosen_budi\",\n    \"password\": \"Dosen123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/Login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "Login"]
+            },
+            "description": "Login sebagai Dosen"
+          },
+          "response": []
+        },
+        {
+          "name": "6. Login - Mahasiswa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data) {",
+                  "    if (jsonData.data.access_token) {",
+                  "        pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+                  "    }",
+                  "    if (jsonData.data.refresh_token) {",
+                  "        pm.collectionVariables.set('refresh_token', jsonData.data.refresh_token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"mhs_andi\",\n    \"password\": \"Mahasiswa123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/Login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "Login"]
+            },
+            "description": "Login sebagai Mahasiswa"
+          },
+          "response": []
+        },
+        {
+          "name": "7. Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "profile"]
+            },
+            "description": "Mendapatkan profil user yang sedang login"
+          },
+          "response": []
+        },
+        {
+          "name": "8. Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.access_token) {",
+                  "    pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Mendapatkan access token baru dengan refresh token"
+          },
+          "response": []
+        },
+        {
+          "name": "9. Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/",
+              "host": ["{{base_url}}"],
+              "path": ["auth", ""]
+            },
+            "description": "Mendapatkan semua user (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "10. Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"admin_updated\",\n    \"email\": \"admin.updated@university.ac.id\",\n    \"full_name\": \"Administrator Sistem (Updated)\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/user/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "user", "{{user_id}}"]
+            },
+            "description": "Update data user berdasarkan ID"
+          },
+          "response": []
+        },
+        {
+          "name": "11. Update User Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"role_id\": \"{{role_id_dosen}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "{{user_id}}"]
+            },
+            "description": "Update role user (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "12. Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "{{user_id}}"]
+            },
+            "description": "Hapus user (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "13. Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout user"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Students",
+      "item": [
+        {
+          "name": "1. Create Student Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('student_id', jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"student_id\": \"2024001001\",\n    \"name\": \"Andi Pratama\",\n    \"program_study\": \"Teknik Informatika\",\n    \"academic_year\": \"2024/2025\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/students",
+              "host": ["{{base_url}}"],
+              "path": ["students"]
+            },
+            "description": "Membuat profil mahasiswa baru"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Get All Students",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/students",
+              "host": ["{{base_url}}"],
+              "path": ["students"]
+            },
+            "description": "Mendapatkan semua mahasiswa"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get Student by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/students/{{student_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["students", "{{student_id}}"]
+            },
+            "description": "Mendapatkan mahasiswa berdasarkan ID"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Get Current Student Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/students/current",
+              "host": ["{{base_url}}"],
+              "path": ["students", "current"]
+            },
+            "description": "Mendapatkan profil mahasiswa yang sedang login"
+          },
+          "response": []
+        },
+        {
+          "name": "5. Update Student",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"student_id\": \"2024001001\",\n    \"name\": \"Andi Pratama Wijaya\",\n    \"program_study\": \"Teknik Informatika\",\n    \"academic_year\": \"2024/2025\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/students/{{student_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["students", "{{student_id}}"]
+            },
+            "description": "Update data mahasiswa"
+          },
+          "response": []
+        },
+        {
+          "name": "6. Assign Advisor to Student",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"advisor_id\": \"{{lecture_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/students/{{student_id}}/advisor",
+              "host": ["{{base_url}}"],
+              "path": ["students", "{{student_id}}", "advisor"]
+            },
+            "description": "Menetapkan dosen pembimbing untuk mahasiswa"
+          },
+          "response": []
+        },
+        {
+          "name": "7. Get Students by Advisor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/students/advisor/{{lecture_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["students", "advisor", "{{lecture_id}}"]
+            },
+            "description": "Mendapatkan daftar mahasiswa berdasarkan dosen pembimbing"
+          },
+          "response": []
+        },
+        {
+          "name": "8. Delete Student",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/students/{{student_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["students", "{{student_id}}"]
+            },
+            "description": "Hapus data mahasiswa (Admin only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Lectures",
+      "item": [
+        {
+          "name": "1. Create Lecture Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('lecture_id', jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"lecturer_id\": \"DSN001\",\n    \"department\": \"Fakultas Ilmu Komputer\",\n    \"user_id\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/lectures",
+              "host": ["{{base_url}}"],
+              "path": ["lectures"]
+            },
+            "description": "Membuat profil dosen baru"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Get All Lectures",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/lectures",
+              "host": ["{{base_url}}"],
+              "path": ["lectures"]
+            },
+            "description": "Mendapatkan semua dosen"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get Lecture by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/lectures/{{lecture_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["lectures", "{{lecture_id}}"]
+            },
+            "description": "Mendapatkan dosen berdasarkan ID"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Get Current Lecture Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/lectures/current",
+              "host": ["{{base_url}}"],
+              "path": ["lectures", "current"]
+            },
+            "description": "Mendapatkan profil dosen yang sedang login"
+          },
+          "response": []
+        },
+        {
+          "name": "5. Update Lecture",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"lecturer_id\": \"DSN001\",\n    \"department\": \"Fakultas Ilmu Komputer - Prodi Informatika\",\n    \"user_id\": \"{{user_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/lectures/{{lecture_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["lectures", "{{lecture_id}}"]
+            },
+            "description": "Update data dosen"
+          },
+          "response": []
+        },
+        {
+          "name": "6. Delete Lecture",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/lectures/{{lecture_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["lectures", "{{lecture_id}}"]
+            },
+            "description": "Hapus data dosen (Admin only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Achievements",
+      "item": [
+        {
+          "name": "1. Create Achievement",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('achievement_id', jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"competition\",\n    \"title\": \"Juara 1 Hackathon Nasional 2024\",\n    \"description\": \"Memenangkan kompetisi hackathon tingkat nasional dengan tema Smart City yang diselenggarakan oleh Kemenkominfo.\",\n    \"details\": {\n        \"event_name\": \"Hackathon Indonesia 2024\",\n        \"organizer\": \"Kementerian Kominfo RI\",\n        \"location\": \"Jakarta Convention Center\",\n        \"date\": \"2024-11-15\",\n        \"rank\": \"Juara 1\",\n        \"prize\": \"Rp 50.000.000\",\n        \"team_members\": [\n            \"Andi Pratama\",\n            \"Budi Setiawan\",\n            \"Citra Dewi\"\n        ],\n        \"project_name\": \"SmartCity Dashboard\"\n    },\n    \"tags\": [\n        \"hackathon\",\n        \"nasional\",\n        \"juara 1\",\n        \"smart city\",\n        \"2024\"\n    ],\n    \"attachments\": [\n        {\n            \"fileName\": \"sertifikat_juara.pdf\",\n            \"fileType\": \"application/pdf\",\n            \"fileUrl\": \"/uploads/sertifikat_juara.pdf\",\n            \"uploadedAt\": \"2024-11-20T10:00:00Z\"\n        }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/achievements",
+              "host": ["{{base_url}}"],
+              "path": ["achievements"]
+            },
+            "description": "Membuat prestasi baru (Mahasiswa)"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Create Achievement - Akademik",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"academic\",\n    \"title\": \"Paper Publikasi di Jurnal Internasional\",\n    \"description\": \"Publikasi paper penelitian di IEEE Access dengan judul Machine Learning for Smart Agriculture.\",\n    \"details\": {\n        \"journal_name\": \"IEEE Access\",\n        \"paper_title\": \"Machine Learning Approach for Smart Agriculture: A Comprehensive Review\",\n        \"doi\": \"10.1109/ACCESS.2024.123456\",\n        \"publication_date\": \"2024-10-01\",\n        \"impact_factor\": 3.9,\n        \"authors\": [\n            \"Andi Pratama\",\n            \"Dr. Budi Santoso, M.Kom\"\n        ],\n        \"indexed\": [\"Scopus\", \"Web of Science\"]\n    },\n    \"tags\": [\n        \"publikasi\",\n        \"jurnal internasional\",\n        \"IEEE\",\n        \"machine learning\"\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/achievements",
+              "host": ["{{base_url}}"],
+              "path": ["achievements"]
+            },
+            "description": "Membuat prestasi akademik"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Create Achievement - Organisasi",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"organization\",\n    \"title\": \"Ketua BEM Fakultas 2024\",\n    \"description\": \"Terpilih sebagai Ketua Badan Eksekutif Mahasiswa Fakultas Ilmu Komputer periode 2024-2025.\",\n    \"details\": {\n        \"organization\": \"BEM Fakultas Ilmu Komputer\",\n        \"position\": \"Ketua\",\n        \"period\": \"2024-2025\",\n        \"election_date\": \"2024-01-15\",\n        \"programs\": [\n            \"Pelatihan Coding untuk SMA\",\n            \"IT Career Fair\",\n            \"Webinar Series Teknologi\"\n        ]\n    },\n    \"tags\": [\n        \"organisasi\",\n        \"BEM\",\n        \"leadership\"\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/achievements",
+              "host": ["{{base_url}}"],
+              "path": ["achievements"]
+            },
+            "description": "Membuat prestasi organisasi"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Upload Attachment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/achievements/upload",
+              "host": ["{{base_url}}"],
+              "path": ["achievements", "upload"]
+            },
+            "description": "Upload lampiran (jpg, png, pdf - max 10MB)"
+          },
+          "response": []
+        },
+        {
+          "name": "5. Get All Achievements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/achievements",
+              "host": ["{{base_url}}"],
+              "path": ["achievements"]
+            },
+            "description": "Mendapatkan semua prestasi"
+          },
+          "response": []
+        },
+        {
+          "name": "6. Get Achievements - Filter by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/achievements?status=submitted",
+              "host": ["{{base_url}}"],
+              "path": ["achievements"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "submitted",
+                  "description": "draft, submitted, verified, rejected"
+                }
+              ]
+            },
+            "description": "Mendapatkan prestasi dengan filter status"
+          },
+          "response": []
+        },
+        {
+          "name": "7. Get Achievement by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/achievements/{{achievement_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["achievements", "{{achievement_id}}"]
+            },
+            "description": "Mendapatkan detail prestasi berdasarkan ID"
+          },
+          "response": []
+        },
+        {
+          "name": "8. Get My Achievements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/achievements/achiev",
+              "host": ["{{base_url}}"],
+              "path": ["achievements", "achiev"]
+            },
+            "description": "Mendapatkan prestasi milik mahasiswa yang login"
+          },
+          "response": []
+        },
+        {
+          "name": "9. Get All MongoDB Data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/achievements/mongo",
+              "host": ["{{base_url}}"],
+              "path": ["achievements", "mongo"]
+            },
+            "description": "Mendapatkan raw data dari MongoDB (debugging)"
+          },
+          "response": []
+        },
+        {
+          "name": "10. Update Achievement",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"competition\",\n    \"title\": \"Juara 1 Hackathon Nasional 2024 - Updated\",\n    \"description\": \"Memenangkan kompetisi hackathon tingkat nasional dengan tema Smart City yang diselenggarakan oleh Kemenkominfo. Tim kami berhasil mengembangkan solusi inovatif untuk manajemen sampah kota.\",\n    \"details\": {\n        \"event_name\": \"Hackathon Indonesia 2024\",\n        \"organizer\": \"Kementerian Kominfo RI\",\n        \"location\": \"Jakarta Convention Center\",\n        \"date\": \"2024-11-15\",\n        \"rank\": \"Juara 1\",\n        \"prize\": \"Rp 50.000.000\",\n        \"team_members\": [\n            \"Andi Pratama\",\n            \"Budi Setiawan\",\n            \"Citra Dewi\"\n        ],\n        \"project_name\": \"SmartCity Waste Management Dashboard\",\n        \"github_url\": \"https://github.com/team/smartcity-dashboard\"\n    },\n    \"tags\": [\n        \"hackathon\",\n        \"nasional\",\n        \"juara 1\",\n        \"smart city\",\n        \"2024\",\n        \"waste management\"\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/achievements/{{achievement_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["achievements", "{{achievement_id}}"]
+            },
+            "description": "Update prestasi (hanya pemilik, status belum verified)"
+          },
+          "response": []
+        },
+        {
+          "name": "11. Submit Achievement",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/achievements/{{achievement_id}}/submit",
+              "host": ["{{base_url}}"],
+              "path": ["achievements", "{{achievement_id}}", "submit"]
+            },
+            "description": "Submit prestasi untuk verifikasi (draft -> submitted)"
+          },
+          "response": []
+        },
+        {
+          "name": "12. Verify Achievement - Approve",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"verified\",\n    \"notes\": \"Prestasi telah diverifikasi. Sertifikat dan bukti pendukung sudah lengkap dan valid.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/achievements/{{achievement_id}}/verify",
+              "host": ["{{base_url}}"],
+              "path": ["achievements", "{{achievement_id}}", "verify"]
+            },
+            "description": "Verifikasi prestasi - Approve (Dosen only)"
+          },
+          "response": []
+        },
+        {
+          "name": "13. Verify Achievement - Reject",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"status\": \"rejected\",\n    \"notes\": \"Prestasi ditolak karena bukti sertifikat tidak jelas. Mohon upload ulang dengan resolusi yang lebih baik.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/achievements/{{achievement_id}}/verify",
+              "host": ["{{base_url}}"],
+              "path": ["achievements", "{{achievement_id}}", "verify"]
+            },
+            "description": "Verifikasi prestasi - Reject (Dosen only)"
+          },
+          "response": []
+        },
+        {
+          "name": "14. Delete Achievement (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/achievements/{{achievement_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["achievements", "{{achievement_id}}"]
+            },
+            "description": "Hapus prestasi - soft delete (hanya pemilik, status belum verified)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Permissions",
+      "item": [
+        {
+          "name": "1. Create Permission",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.id) {",
+                  "    pm.collectionVariables.set('permission_id', jsonData.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"manage_achievements\",\n    \"resource\": \"achievements\",\n    \"action\": \"create,read,update,delete\",\n    \"description\": \"Izin untuk mengelola data prestasi mahasiswa\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["permissions"]
+            },
+            "description": "Membuat permission baru"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Create Permission - Verify",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"verify_achievements\",\n    \"resource\": \"achievements\",\n    \"action\": \"verify\",\n    \"description\": \"Izin untuk memverifikasi prestasi mahasiswa\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["permissions"]
+            },
+            "description": "Membuat permission untuk verifikasi"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Create Permission - User Management",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"manage_users\",\n    \"resource\": \"users\",\n    \"action\": \"create,read,update,delete\",\n    \"description\": \"Izin untuk mengelola data pengguna sistem\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["permissions"]
+            },
+            "description": "Membuat permission untuk manajemen user"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Get All Permissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["permissions"]
+            },
+            "description": "Mendapatkan semua permission"
+          },
+          "response": []
+        },
+        {
+          "name": "5. Assign Permission to Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"role_id\": \"{{role_id_dosen}}\",\n    \"permission_id\": \"{{permission_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/permissions/assign",
+              "host": ["{{base_url}}"],
+              "path": ["permissions", "assign"]
+            },
+            "description": "Assign permission ke role tertentu"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "1. Get Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reports/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["reports", "statistics"]
+            },
+            "description": "Mendapatkan statistik sistem (jumlah mahasiswa, dosen, prestasi)"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Get Student Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/reports/student/{{student_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["reports", "student", "{{student_id}}"]
+            },
+            "description": "Mendapatkan laporan prestasi lengkap per mahasiswa"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

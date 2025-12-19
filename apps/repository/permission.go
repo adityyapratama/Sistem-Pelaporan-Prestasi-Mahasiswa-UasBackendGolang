@@ -75,7 +75,6 @@ func ( r *PostgresPermissionRepository)AssignToRole(ctx context.Context, roleID 
 }
 
 func (r *PostgresPermissionRepository) GetByRoleID(ctx context.Context, roleID uuid.UUID) ([]models.Permission, error) {
-    // Query join antara permissions dan role_permissions
     query := `
         SELECT p.id, p.name 
         FROM permissions p

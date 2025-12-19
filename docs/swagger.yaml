@@ -1,0 +1,1487 @@
+basePath: /api/v1
+definitions:
+  models.AssignPermissionRequest:
+    properties:
+      permission_id:
+        type: string
+      role_id:
+        type: string
+    type: object
+  models.Attachment:
+    properties:
+      fileName:
+        type: string
+      fileType:
+        type: string
+      fileUrl:
+        type: string
+      uploadedAt:
+        type: string
+    type: object
+  models.CreateAchievementRequest:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/models.Attachment'
+        type: array
+      description:
+        type: string
+      details:
+        additionalProperties: true
+        type: object
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      type:
+        type: string
+    required:
+    - title
+    - type
+    type: object
+  models.CreateLectureRequest:
+    properties:
+      department:
+        type: string
+      lecturer_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.CreatePermissionRequest:
+    properties:
+      action:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      resource:
+        type: string
+    type: object
+  models.CreateStudentRequest:
+    properties:
+      academic_year:
+        type: string
+      name:
+        type: string
+      program_study:
+        type: string
+      student_id:
+        type: string
+    type: object
+  models.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  models.RefreshTokenRequest:
+    properties:
+      refresh_token:
+        type: string
+    type: object
+  models.RegisterRequest:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      role_id:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - full_name
+    - password
+    - role_id
+    - username
+    type: object
+  models.Role:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  models.SetAdvisorRequest:
+    properties:
+      advisor_id:
+        type: string
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      role:
+        $ref: '#/definitions/models.Role'
+      role_id:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  models.VerifyAchievementRequest:
+    properties:
+      notes:
+        description: alasam
+        type: string
+      status:
+        description: '"verified" / "rejected"'
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: support@example.com
+    name: Tim Pengembang
+  description: API untuk Sistem Pelaporan Prestasi Mahasiswa. Mendukung manajemen
+    mahasiswa, dosen, prestasi, dan verifikasi.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Sistem Pelaporan Prestasi Mahasiswa API
+  version: "1.0"
+paths:
+  /achievements:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil daftar seluruh prestasi dengan filter status opsional
+        (draft, submitted, verified, rejected)
+      parameters:
+      - description: Filter berdasarkan status (draft/submitted/verified/rejected)
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar prestasi
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal mengambil data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan semua prestasi
+      tags:
+      - Achievements
+    post:
+      consumes:
+      - application/json
+      description: Melaporkan prestasi baru ke sistem (khusus Mahasiswa). Data disimpan
+        di MongoDB dan PostgreSQL
+      parameters:
+      - description: Data prestasi (type, title, description, details, tags, attachments)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateAchievementRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Prestasi berhasil dilaporkan
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Request tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Profil mahasiswa tidak ditemukan
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal menyimpan data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Buat prestasi baru
+      tags:
+      - Achievements
+  /achievements/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus prestasi dengan soft delete (khusus pemilik, status belum
+        verified)
+      parameters:
+      - description: ID prestasi (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Prestasi berhasil dihapus
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID tidak valid atau prestasi sudah verified
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Tidak berhak menghapus
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Prestasi tidak ditemukan
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal menghapus prestasi
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Hapus prestasi (soft delete)
+      tags:
+      - Achievements
+    get:
+      consumes:
+      - application/json
+      description: Mengambil detail prestasi berdasarkan ID termasuk data dari PostgreSQL
+        dan MongoDB
+      parameters:
+      - description: ID prestasi (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail prestasi (info dari PostgreSQL, detail dari MongoDB)
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Prestasi tidak ditemukan
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan detail prestasi
+      tags:
+      - Achievements
+    put:
+      consumes:
+      - application/json
+      description: Memperbarui data prestasi (khusus pemilik, status belum verified)
+      parameters:
+      - description: ID prestasi (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Data prestasi yang akan diupdate
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateAchievementRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data berhasil diperbarui
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID tidak valid atau prestasi sudah verified
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Tidak berhak mengedit
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Prestasi tidak ditemukan
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal update data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update prestasi
+      tags:
+      - Achievements
+  /achievements/{id}/submit:
+    patch:
+      consumes:
+      - application/json
+      description: Mengubah status prestasi dari draft menjadi submitted (khusus pemilik)
+      parameters:
+      - description: ID prestasi (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Prestasi berhasil disubmit
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID tidak valid atau status bukan draft
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Tidak berhak submit
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Prestasi tidak ditemukan
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal submit prestasi
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Submit prestasi untuk verifikasi
+      tags:
+      - Achievements
+  /achievements/{id}/verify:
+    patch:
+      consumes:
+      - application/json
+      description: Memverifikasi atau menolak prestasi mahasiswa (khusus Dosen). Wajib
+        sertakan alasan jika ditolak
+      parameters:
+      - description: ID prestasi (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Status verifikasi (verified/rejected) dan catatan
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.VerifyAchievementRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status berhasil diperbarui
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID atau status tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal update status
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Verifikasi prestasi
+      tags:
+      - Achievements
+  /achievements/achiev:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil daftar prestasi milik mahasiswa yang sedang login
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar prestasi Anda
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Profil mahasiswa tidak ditemukan
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal mengambil data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan prestasi saya
+      tags:
+      - Achievements
+  /achievements/mongo:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil semua raw data prestasi dari MongoDB (untuk debugging)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data dari MongoDB
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal mengambil data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan semua data dari MongoDB
+      tags:
+      - Achievements
+  /achievements/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Mengunggah file lampiran untuk prestasi (jpg, png, pdf). Maks 10MB
+      parameters:
+      - description: 'File yang akan di-upload (Maks 10MB, Tipe: jpg/png/pdf)'
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: File berhasil diupload
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Format file tidak diizinkan
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal menyimpan file
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Upload lampiran prestasi
+      tags:
+      - Achievements
+  /auth/:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil daftar seluruh pengguna dalam sistem
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar semua user
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal mengambil data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan semua pengguna
+      tags:
+      - Auth
+  /auth/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus pengguna dari sistem berdasarkan ID (khusus Admin)
+      parameters:
+      - description: ID pengguna (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User berhasil dihapus
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal hapus user
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Hapus pengguna
+      tags:
+      - Auth
+    put:
+      consumes:
+      - application/json
+      description: Mengubah role pengguna berdasarkan ID (khusus Admin)
+      parameters:
+      - description: ID pengguna (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Role ID baru
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Role berhasil diupdate
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal update role
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update role pengguna
+      tags:
+      - Auth
+  /auth/Login:
+    post:
+      consumes:
+      - application/json
+      description: Melakukan autentikasi pengguna dan mendapatkan token JWT (access_token
+        & refresh_token)
+      parameters:
+      - description: Kredensial login (username/email dan password)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login berhasil dengan token
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Request tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Username atau password salah
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login pengguna
+      tags:
+      - Auth
+  /auth/Register:
+    post:
+      consumes:
+      - application/json
+      description: Mendaftarkan pengguna baru ke dalam sistem dengan username, email,
+        password, dan role
+      parameters:
+      - description: Data registrasi pengguna
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User berhasil dibuat
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Request tidak valid atau username sudah ada
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal menyimpan user
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Registrasi pengguna baru
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Mengeluarkan pengguna dari sistem (invalidate session)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout berhasil
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Logout pengguna
+      tags:
+      - Auth
+  /auth/profile:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil data profil pengguna yang sedang login berdasarkan token
+        JWT
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data profil pengguna
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: User ID tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User tidak ditemukan
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan profil pengguna
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Mendapatkan access token baru menggunakan refresh token yang valid
+      parameters:
+      - description: Refresh token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.RefreshTokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token baru berhasil dibuat
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Refresh token tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User tidak ditemukan
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Refresh token
+      tags:
+      - Auth
+  /auth/user/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Memperbarui data pengguna berdasarkan ID (username, email, full_name)
+      parameters:
+      - description: ID pengguna (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Data yang akan diupdate
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User berhasil diupdate
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID atau body tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal update user
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update data pengguna
+      tags:
+      - Auth
+  /lectures:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil daftar seluruh dosen dalam sistem
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar semua dosen
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal mengambil data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan semua dosen
+      tags:
+      - Lectures
+    post:
+      consumes:
+      - application/json
+      description: Membuat profil dosen baru. Admin dapat membuat untuk user lain,
+        dosen hanya untuk diri sendiri
+      parameters:
+      - description: Data profil dosen
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateLectureRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Profil dosen berhasil dibuat
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Request tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Profil sudah ada
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal menyimpan data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Buat profil dosen
+      tags:
+      - Lectures
+  /lectures/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus data dosen berdasarkan ID (khusus Admin)
+      parameters:
+      - description: ID dosen (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data dosen berhasil dihapus
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal menghapus data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Hapus dosen
+      tags:
+      - Lectures
+    get:
+      consumes:
+      - application/json
+      description: Mengambil data dosen berdasarkan ID
+      parameters:
+      - description: ID dosen (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data dosen
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Dosen tidak ditemukan
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal mengambil data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan dosen berdasarkan ID
+      tags:
+      - Lectures
+    put:
+      consumes:
+      - application/json
+      description: Memperbarui data profil dosen berdasarkan ID
+      parameters:
+      - description: ID dosen (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Data yang akan diupdate
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateLectureRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profil berhasil diperbarui
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID atau body tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Dosen tidak ditemukan
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal update data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update profil dosen
+      tags:
+      - Lectures
+  /lectures/current:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil profil dosen yang sedang login berdasarkan token JWT
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data profil dosen
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Profil belum dibuat
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal mengambil data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan profil dosen saat ini
+      tags:
+      - Lectures
+  /permissions:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil daftar seluruh permission dalam sistem
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar semua permission
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal mengambil data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan semua permission
+      tags:
+      - Permissions
+    post:
+      consumes:
+      - application/json
+      description: Membuat permission baru dalam sistem untuk kontrol akses
+      parameters:
+      - description: Data permission (name, resource, action)
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePermissionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Permission berhasil dibuat
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Request tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal menyimpan data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Buat permission baru
+      tags:
+      - Permissions
+  /permissions/assign:
+    post:
+      consumes:
+      - application/json
+      description: Menetapkan permission ke role tertentu untuk kontrol akses
+      parameters:
+      - description: Role ID dan Permission ID
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AssignPermissionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Permission berhasil ditetapkan ke role
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Format ID tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal assign permission
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Assign permission ke role
+      tags:
+      - Permissions
+  /reports/statistics:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil statistik umum sistem termasuk jumlah mahasiswa, dosen,
+        dan prestasi (khusus Admin/Dosen)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Statistik sistem
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal mengambil statistik
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan statistik sistem
+      tags:
+      - Reports
+  /reports/student/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil laporan prestasi lengkap per mahasiswa berdasarkan ID
+        (khusus Admin/Dosen)
+      parameters:
+      - description: ID mahasiswa (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Laporan prestasi mahasiswa
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Mahasiswa tidak ditemukan
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal mengambil data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan laporan mahasiswa
+      tags:
+      - Reports
+  /students:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil daftar seluruh mahasiswa (khusus Dosen/Admin)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar semua mahasiswa
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal mengambil data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan semua mahasiswa
+      tags:
+      - Students
+    post:
+      consumes:
+      - application/json
+      description: Membuat profil mahasiswa baru untuk pengguna yang sudah terdaftar
+      parameters:
+      - description: Data profil mahasiswa
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateStudentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Profil mahasiswa berhasil dibuat
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Request tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Data mahasiswa sudah ada
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal menyimpan data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Buat profil mahasiswa
+      tags:
+      - Students
+  /students/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus data mahasiswa berdasarkan ID (khusus Admin)
+      parameters:
+      - description: ID mahasiswa (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data mahasiswa berhasil dihapus
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal menghapus data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Hapus mahasiswa
+      tags:
+      - Students
+    get:
+      consumes:
+      - application/json
+      description: Mengambil data mahasiswa berdasarkan ID mahasiswa
+      parameters:
+      - description: ID mahasiswa (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data mahasiswa
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Mahasiswa tidak ditemukan
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal mengambil data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan mahasiswa berdasarkan ID
+      tags:
+      - Students
+    put:
+      consumes:
+      - application/json
+      description: Memperbarui data profil mahasiswa berdasarkan ID
+      parameters:
+      - description: ID mahasiswa (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Data yang akan diupdate
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateStudentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profil berhasil diperbarui
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID atau body tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Mahasiswa tidak ditemukan
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal update data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update profil mahasiswa
+      tags:
+      - Students
+  /students/{id}/advisor:
+    put:
+      consumes:
+      - application/json
+      description: Menetapkan dosen pembimbing untuk mahasiswa berdasarkan ID (khusus
+        Admin)
+      parameters:
+      - description: ID mahasiswa (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: ID dosen pembimbing
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.SetAdvisorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dosen pembimbing berhasil ditetapkan
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID tidak valid
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal menetapkan dosen wali
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Tetapkan dosen pembimbing
+      tags:
+      - Students
+  /students/advisor/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil daftar mahasiswa berdasarkan ID dosen pembimbing
+      parameters:
+      - description: ID dosen pembimbing (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Daftar mahasiswa
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Mahasiswa tidak ditemukan
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal mengambil data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan mahasiswa berdasarkan dosen pembimbing
+      tags:
+      - Students
+  /students/current:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil profil mahasiswa yang sedang login berdasarkan token
+        JWT
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data profil mahasiswa
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Profil belum dibuat
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Gagal mengambil data
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Dapatkan profil mahasiswa saat ini
+      tags:
+      - Students
+securityDefinitions:
+  BearerAuth:
+    description: 'Masukkan token JWT dengan format: Bearer {token}'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
